@@ -58,4 +58,63 @@ export const createUserRoute: FastifyPluginAsyncZod = async (server) => {
       return reply.status(500).send({ message: "Cannot process user registration" })    
     }
   })
+
+  server.get("/api/users", async () => {
+  const users = await db
+    .select()
+    .from(usuarios);
+
+  return users;
+});
+
+server.delete("/api/users/:id", async (request, reply) => {
+  try {
+    const { id } = request.params as { id: string };
+
+    await db
+      .delete(usuarios)
+      .where(eq(usuarios.id, id));
+
+    return reply.status(200).send({
+      message: "User deleted successfully",
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return reply.status(500).send({
+      message: "Error deleting user",
+    });
+  }
+});
+
+server.put("/api/users/:id", async (request, reply) => {
+  try {
+    const { id } = request.params as { id: string };
+
+    const body = request.body as {
+      name: string;
+      email: string;
+    };
+
+    await db
+      .update(usuarios)
+      .set({
+        nome: body.name,
+        email: body.email,
+      })
+      .where(eq(usuarios.id, id));
+
+    return reply.status(200).send({
+      message: "User updated successfully",
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return reply.status(500).send({
+      message: "Error updating user",
+    });
+  }
+});
 }
