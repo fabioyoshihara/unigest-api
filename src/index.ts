@@ -7,6 +7,9 @@ import { createStudentRoute } from "./routes/students/createStudentsRoute.ts";
 import { createUserRoute } from "./routes/users/createUserRoute.ts";
 import { loginRoute } from "./routes/auth/loginRoute.ts";
 import { createCourseRoute } from "./routes/courses/createCourseRoute.ts";
+import "dotenv/config"
+
+const port = Number(process.env.PORT) || 3333;
 
 const server = fastify({
   logger: {
@@ -42,11 +45,11 @@ if(process.env.NODE_ENVIRONMENT === "development") {
   })
 }
 
-server.listen({ port: 3333, host: '0.0.0.0' }, (err) => {
-  console.log("HTTP server is running!");
+server.listen({ port, host: '0.0.0.0' }, (err, address) => {
   if(err) {
     server.log.error(err);
   }
+  console.log(`HTTP server is running, ${address}`);
 })
 
 server.setValidatorCompiler(validatorCompiler);
