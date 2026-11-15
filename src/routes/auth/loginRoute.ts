@@ -1,17 +1,17 @@
 import { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { usuarios } from "../database/schema.ts";
+import { users } from "../../database/schema.ts";
 import { eq } from "drizzle-orm";
-import { db } from "../database/client.ts";
+import { db } from "../../database/client.ts";
 import jwt from "jsonwebtoken";
 import { verify } from "argon2";
 
 export const loginRoute: FastifyPluginAsyncZod = async (server) => {
-  server.post("/api/login", {
+  server.post("/api/v1/login", {
     schema: { 
-      description: "",
-      summary: "",
       tags: ["Authentication"],
+      summary: "",
+      description: "",
       body: z.object({
         email: z.email(),
         password: z.string(),
@@ -37,8 +37,8 @@ export const loginRoute: FastifyPluginAsyncZod = async (server) => {
       
       const result = await db
         .select()
-        .from(usuarios)
-        .where(eq(usuarios.email, email));
+        .from(users)
+        .where(eq(users.email, email));
 
       if(result.length === 0) {
         return reply.status(400).send({ message: "Invalid Credentials"})
@@ -46,13 +46,13 @@ export const loginRoute: FastifyPluginAsyncZod = async (server) => {
 
       const user = result[0];
 
-      const doesPasswordMatch = await verify(user.senhaHash, password);
+      const doesPasswordMatch = await verify(user.passwordHash, password);
 
       if(!doesPasswordMatch) { 
         return reply.status(400).send({ message: "Invalid password. Try Again"})
       }
 
-      const token = jwt.sign({ sub: user.id, role: user.papel }, process.env.JWT_SECRET!)
+      const token = jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET!)
 
       return reply.status(200).send({ token })
     } catch(err) { 

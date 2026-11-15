@@ -15,216 +15,215 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
-export const titulacaoEnum = pgEnum('titulacao', [
-  'graduacao',
-  'especializacao',
-  'mestre',
-  'doutor',
+export const degreeLevelEnum = pgEnum('degree_level', [
+  'undergraduate',
+  'specialization',
+  'master',
+  'doctorate',
 ])
 
-export const modalidadeCursoEnum = pgEnum('modalidade_curso', [
-  'presencial',
-  'ead',
-  'hibrido',
+export const courseModalityEnum = pgEnum('course_modality', [
+  'in_person',
+  'online',
+  'hybrid',
 ])
 
-export const semestreLetivoEnum = pgEnum('semestre_letivo', ['1', '2'])
+export const academicSemesterEnum = pgEnum('academic_semester', ['1', '2'])
 
-export const resultadoMatriculaEnum = pgEnum('resultado_matricula', [
-  'em_curso',
-  'aprovado',
-  'reprovado',
-  'trancado',
+export const enrollmentStatusEnum = pgEnum('enrollment_status', [
+  'in_progress',
+  'approved',
+  'failed',
+  'withdrawn',
 ])
 
-export const papelUsuarioEnum = pgEnum('papel_usuario', [
+export const userRoleEnum = pgEnum('user_role', [
   'admin',
-  'secretaria',
-  'financeiro',
-  'coordenacao',
+  'secretary',
+  'finance',
+  'coordination',
 ])
 
-export const alunos = pgTable(
-  'alunos',
-  {
-    id:           uuid('id').primaryKey().defaultRandom(),
-    nome:         varchar('nome', { length: 200 }).notNull(),
-    cpf:          varchar('cpf', { length: 14 }).notNull(),
-    email:        varchar('email', { length: 120 }).notNull(),
-    telefone:     varchar('telefone', { length: 20 }).notNull(),
-    endereco:     varchar('endereco', { length: 255 }).notNull(),
-    ra:           varchar('ra', { length: 20 }).notNull(),
-    dataIngresso: timestamp('data_ingresso').notNull(),
-    ativo:        boolean('ativo').default(true).notNull(),
-    createdAt:    timestamp('created_at').defaultNow(),
-    updatedAt:    timestamp('updated_at').defaultNow(),
-  },
-  (t) => ({
-    cpfUq:   uniqueIndex('alunos_cpf_uq').on(t.cpf),
-    emailUq: uniqueIndex('alunos_email_uq').on(t.email),
-    raUq:    uniqueIndex('alunos_ra_uq').on(t.ra),
-  }),
-)
-
-export const docentes = pgTable(
-  'docentes',
+export const students = pgTable(
+  'students',
   {
     id:                 uuid('id').primaryKey().defaultRandom(),
-    nome:               varchar('nome', { length: 200 }).notNull(),
+    name:               varchar('name', { length: 200 }).notNull(),
     cpf:                varchar('cpf', { length: 14 }).notNull(),
-    rg:                 varchar('rg', { length: 20 }),
     email:              varchar('email', { length: 120 }).notNull(),
-    telefone:           varchar('telefone', { length: 20 }).notNull(),
-    endereco:           varchar('endereco', { length: 255 }).notNull(),
-    matriculaFuncional: varchar('matricula_funcional', { length: 20 }).notNull(),
-    titulacao:          titulacaoEnum('titulacao').notNull(),
-    ativo:              boolean('ativo').default(true).notNull(),
-    createdAt:          timestamp('created_at').defaultNow().notNull(),
-    updatedAt:          timestamp('updated_at').defaultNow().notNull(),
+    phone:              varchar('phone', { length: 20 }).notNull(),
+    address:            varchar('address', { length: 255 }).notNull(),
+    registrationNumber: varchar('registration_number', { length: 20 }).notNull(),
+    admissionDate:      timestamp('admission_date').notNull(),
+    isActive:           boolean('is_active').default(true).notNull(),
+    createdAt:          timestamp('created_at').defaultNow(),
+    updatedAt:          timestamp('updated_at').defaultNow(),
   },
   (t) => ({
-    cpfUq:       uniqueIndex('docentes_cpf_uq').on(t.cpf),
-    emailUq:     uniqueIndex('docentes_email_uq').on(t.email),
-    matriculaUq: uniqueIndex('docentes_matricula_uq').on(t.matriculaFuncional),
+    cpfUq:                uniqueIndex('students_cpf_uq').on(t.cpf),
+    emailUq:              uniqueIndex('students_email_uq').on(t.email),
+    registrationNumberUq: uniqueIndex('students_registration_number_uq').on(t.registrationNumber),
   }),
 )
 
-export const fornecedores = pgTable(
-  'fornecedores',
+export const teachers = pgTable(
+  'teachers',
+  {
+    id:             uuid('id').primaryKey().defaultRandom(),
+    name:           varchar('name', { length: 200 }).notNull(),
+    cpf:            varchar('cpf', { length: 14 }).notNull(),
+    rg:             varchar('rg', { length: 20 }),
+    email:          varchar('email', { length: 120 }).notNull(),
+    phone:          varchar('phone', { length: 20 }).notNull(),
+    address:        varchar('address', { length: 255 }).notNull(),
+    employeeNumber: varchar('employee_number', { length: 20 }).notNull(),
+    degreeLevel:    degreeLevelEnum('degree_level').notNull(),
+    isActive:       boolean('is_active').default(true).notNull(),
+    createdAt:      timestamp('created_at').defaultNow().notNull(),
+    updatedAt:      timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => ({
+    cpfUq:          uniqueIndex('teachers_cpf_uq').on(t.cpf),
+    emailUq:        uniqueIndex('teachers_email_uq').on(t.email),
+    employeeNumberUq: uniqueIndex('teachers_employee_number_uq').on(t.employeeNumber),
+  }),
+)
+
+export const suppliers = pgTable(
+  'suppliers',
   {
     id:               uuid('id').primaryKey().defaultRandom(),
-    razaoSocial:      varchar('razao_social', { length: 200 }).notNull(),
+    legalName:        varchar('legal_name', { length: 200 }).notNull(),
     cnpj:             varchar('cnpj', { length: 18 }).notNull(),
-    inscricaoEstadual:varchar('inscricao_estadual', { length: 30 }),
+    stateRegistration:varchar('state_registration', { length: 30 }),
     email:            varchar('email', { length: 120 }).notNull(),
-    telefone:         varchar('telefone', { length: 20 }).notNull(),
-    endereco:         varchar('endereco', { length: 255 }).notNull(),
-    categoria:        varchar('categoria', { length: 100 }).notNull(),
-    ativo:            boolean('ativo').default(true).notNull(),
+    phone:            varchar('phone', { length: 20 }).notNull(),
+    address:          varchar('address', { length: 255 }).notNull(),
+    category:         varchar('category', { length: 100 }).notNull(),
+    isActive:          boolean('is_active').default(true).notNull(),
     createdAt:        timestamp('created_at').defaultNow().notNull(),
     updatedAt:        timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => ({
-    cnpjUq: uniqueIndex('fornecedores_cnpj_uq').on(t.cnpj),
+    cnpjUq: uniqueIndex('suppliers_cnpj_uq').on(t.cnpj),
   }),
 )
 
-export const cursos = pgTable('cursos', {
+export const courses = pgTable('courses', {
   id:               uuid('id').primaryKey().defaultRandom(),
-  nome:             varchar('nome', { length: 150 }).notNull(),
-  cargaHoraria:     integer('carga_horaria').notNull(),     // horas-aula totais
-  duracaoSemestres: integer('duracao_semestres').notNull(), // ex: 8
-  modalidade:       modalidadeCursoEnum('modalidade').default('presencial').notNull(),
-  ativo:            boolean('ativo').default(true).notNull(),
+  name:             varchar('name', { length: 150 }).notNull(),
+  workloadHours:    integer('workload_hours').notNull(),
+  durationSemesters: integer('duration_semesters').notNull(),
+  modality:         courseModalityEnum('modality').default('in_person').notNull(),
+  isActive:         boolean('is_active').default(true).notNull(),
   createdAt:        timestamp('created_at').defaultNow().notNull(),
   updatedAt:        timestamp('updated_at').defaultNow().notNull(),
 })
 
-export const turmas = pgTable(
-  'turmas',
+export const classes = pgTable(
+  'classes',
   {
-    id:        uuid('id').primaryKey().defaultRandom(),
-    cursoId:   uuid('curso_id')
-                 .notNull()
-                 .references(() => cursos.id, { onDelete: 'restrict' }),
-    docenteId: uuid('docente_id')
-                 .references(() => docentes.id, { onDelete: 'set null' }), // nullable: pode ser atribuído depois
-    descricao: varchar('descricao', { length: 200 }).notNull(),
-    semestre:  semestreLetivoEnum('semestre').notNull(),
-    ano:       integer('ano').notNull(),
-    horario:   time('horario').notNull(),
-    sala:      varchar('sala', { length: 50 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    id:          uuid('id').primaryKey().defaultRandom(),
+    courseId:    uuid('course_id')
+                   .notNull()
+                   .references(() => courses.id, { onDelete: 'restrict' }),
+    teacherId:   uuid('teacher_id')
+                   .references(() => teachers.id, { onDelete: 'set null' }),
+    description: varchar('description', { length: 200 }).notNull(),
+    semester:    academicSemesterEnum('semester').notNull(),
+    year:        integer('year').notNull(),
+    scheduleTime: time('schedule_time').notNull(),
+    room:        varchar('room', { length: 50 }).notNull(),
+    createdAt:   timestamp('created_at').defaultNow().notNull(),
+    updatedAt:   timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => ({
-    idxCurso:   index('turmas_curso_idx').on(t.cursoId),
-    idxDocente: index('turmas_docente_idx').on(t.docenteId),
+    idxCourse:  index('classes_course_idx').on(t.courseId),
+    idxTeacher: index('classes_teacher_idx').on(t.teacherId),
   }),
 )
 
-export const matriculas = pgTable(
-  'matriculas',
+export const enrollments = pgTable(
+  'enrollments',
   {
-    alunoId:       uuid('aluno_id')
-                     .notNull()
-                     .references(() => alunos.id, { onDelete: 'cascade' }),
-    turmaId:       uuid('turma_id')
-                     .notNull()
-                     .references(() => turmas.id, { onDelete: 'cascade' }),
-    dataMatricula: date('data_matricula').notNull(),
-    notaFinal:     numeric('nota_final', { precision: 4, scale: 2 }),     // 0.00–10.00
-    frequenciaPct: numeric('frequencia_pct', { precision: 5, scale: 2 }), // 0.00–100.00
-    resultado:     resultadoMatriculaEnum('resultado').default('em_curso').notNull(),
-    createdAt:     timestamp('created_at').defaultNow().notNull(),
-    updatedAt:     timestamp('updated_at').defaultNow().notNull(),
+    studentId: uuid('student_id')
+                .notNull()
+                .references(() => students.id, { onDelete: 'cascade' }),
+    classId:   uuid('class_id')
+                .notNull()
+                .references(() => classes.id, { onDelete: 'cascade' }),
+    enrollmentDate:       date('enrollment_date').notNull(),
+    finalGrade:           numeric('final_grade', { precision: 4, scale: 2 }),
+    attendancePercentage: numeric('attendance_percentage', { precision: 5, scale: 2 }),
+    status:               enrollmentStatusEnum('status').default('in_progress').notNull(),
+    createdAt:            timestamp('created_at').defaultNow().notNull(),
+    updatedAt:            timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => ({
-    pk:       primaryKey({ columns: [t.alunoId, t.turmaId] }),
-    idxAluno: index('matriculas_aluno_idx').on(t.alunoId),
-    idxTurma: index('matriculas_turma_idx').on(t.turmaId),
+    pk:        primaryKey({ columns: [t.studentId, t.classId] }),
+    idxStudent: index('enrollments_student_idx').on(t.studentId),
+    idxClass:   index('enrollments_class_idx').on(t.classId),
   }),
 )
 
-export const usuarios = pgTable(
-  'usuarios',
+export const users = pgTable(
+  'users',
   {
-    id:        uuid('id').primaryKey().defaultRandom(),
-    nome:      varchar('nome', { length: 200 }).notNull(),
-    email:     varchar('email', { length: 120 }).notNull(),
-    senhaHash: varchar('senha_hash', { length: 255 }).notNull(),
-    papel:     papelUsuarioEnum('papel').default('secretaria').notNull(),
-    ativo:     boolean('ativo').default(true).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    id:           uuid('id').primaryKey().defaultRandom(),
+    name:         varchar('name', { length: 200 }).notNull(),
+    email:        varchar('email', { length: 120 }).notNull(),
+    passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+    role:         userRoleEnum('role').default('secretary').notNull(),
+    isActive:     boolean('is_active').default(true).notNull(),
+    createdAt:    timestamp('created_at').defaultNow().notNull(),
+    updatedAt:    timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => ({
-    emailUq: uniqueIndex('usuarios_email_uq').on(t.email),
+    emailUq: uniqueIndex('users_email_uq').on(t.email),
   }),
 )
 
-export const cursosRelations = relations(cursos, ({ many }) => ({
-  turmas: many(turmas),
+export const coursesRelations = relations(courses, ({ many }) => ({
+  classes: many(classes),
 }))
 
-export const docentesRelations = relations(docentes, ({ many }) => ({
-  turmas: many(turmas),
+export const teachersRelations = relations(teachers, ({ many }) => ({
+  classes: many(classes),
 }))
 
-export const alunosRelations = relations(alunos, ({ many }) => ({
-  matriculas: many(matriculas),
+export const studentsRelations = relations(students, ({ many }) => ({
+  enrollments: many(enrollments),
 }))
 
-export const turmasRelations = relations(turmas, ({ one, many }) => ({
-  curso:      one(cursos,   { fields: [turmas.cursoId],   references: [cursos.id] }),
-  docente:    one(docentes, { fields: [turmas.docenteId], references: [docentes.id] }),
-  matriculas: many(matriculas),
+export const classesRelations = relations(classes, ({ one, many }) => ({
+  course:      one(courses, { fields: [classes.courseId], references: [courses.id] }),
+  teacher:     one(teachers, { fields: [classes.teacherId], references: [teachers.id] }),
+  enrollments: many(enrollments),
 }))
 
-export const matriculasRelations = relations(matriculas, ({ one }) => ({
-  aluno: one(alunos, { fields: [matriculas.alunoId], references: [alunos.id] }),
-  turma: one(turmas, { fields: [matriculas.turmaId], references: [turmas.id] }),
+export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
+  student: one(students, { fields: [enrollments.studentId], references: [students.id] }),
+  class:   one(classes, { fields: [enrollments.classId], references: [classes.id] }),
 }))
 
 export const schema = {
+  degreeLevelEnum,
+  courseModalityEnum,
+  academicSemesterEnum,
+  enrollmentStatusEnum,
+  userRoleEnum,
 
-  titulacaoEnum,
-  modalidadeCursoEnum,
-  semestreLetivoEnum,
-  resultadoMatriculaEnum,
-  papelUsuarioEnum,
+  students,
+  teachers,
+  suppliers,
+  courses,
+  classes,
+  enrollments,
+  users,
 
-  alunos,
-  docentes,
-  fornecedores,
-  cursos,
-  turmas,
-  matriculas,
-  usuarios,
-
-  cursosRelations,
-  docentesRelations,
-  alunosRelations,
-  turmasRelations,
-  matriculasRelations,
+  coursesRelations,
+  teachersRelations,
+  studentsRelations,
+  classesRelations,
+  enrollmentsRelations,
 } as const

@@ -1,19 +1,19 @@
 import { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import { checkRequestJWT } from "./hooks/check-request-jwt.ts";
+import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { z } from "zod";
-import { getUserFromRequest } from "../utils/getUserFromRequest.ts";
-import { db } from "../database/client.ts";
-import { alunos } from "../database/schema.ts";
+import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
+import { db } from "../../database/client.ts";
+import { students } from "../../database/schema.ts";
 
 export const createStudentRoute: FastifyPluginAsyncZod = async (server) => {
-  server.post("/api/students", { 
+  server.post("/api/v1/students", { 
     preHandler: [
       checkRequestJWT,
     ],
     schema: {
       tags: ["Students"],
-      description: "Create an enrollment to student",
       summary: "",
+      description: "Create an enrollment to student",
       response: {
         201: z.object({
           studentId: z.string(),
@@ -42,15 +42,15 @@ export const createStudentRoute: FastifyPluginAsyncZod = async (server) => {
     }
 
     const result = await db
-      .insert(alunos)
+      .insert(students)
       .values({
-        nome,
+        name: nome,
         cpf,
         email,
-        telefone,
-        endereco,
-        ra,
-        dataIngresso
+        phone: telefone,
+        address: endereco,
+        registrationNumber: ra,
+        admissionDate: dataIngresso,
       })
       .returning();
 
