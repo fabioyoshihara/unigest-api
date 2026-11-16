@@ -9,6 +9,7 @@ import { loginRoute } from "./routes/auth/loginRoute.ts";
 import { createCourseRoute } from "./routes/courses/createCourseRoute.ts";
 import "dotenv/config"
 import { getUsersRoute } from "./routes/users/getUsersRoute.ts";
+import { healthRoute } from "./routes/health.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -56,6 +57,7 @@ server.listen({ port, host: '0.0.0.0' }, (err, address) => {
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
+server.register(healthRoute);
 server.register(loginRoute);
 server.register(createUserRoute); /* OK - SEM AUTENTICAÇÃO - EXIGIR AUTENTICAÇÃO */
 server.register(getUsersRoute);
