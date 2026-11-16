@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:3000/api/v1
+
+# 1. AUTHENTICATE ROUTE
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{ 
+  "email": "admin.sistema@unigest.edu.br",
+  "password": "Admin@2026"
+}
+
+###
+# Captura a propriedade "token" do JSON de resposta da requisição chamada "login"
+@authToken = {{login.response.body.token}}
+
+# USERS ROUTE
+###
+
+# Return all users from database
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+###
+
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{ 
+  "firstName": "John",
+  "lastName": "Doe",
+  "personalEmail": "johndoe@example.com"
+}
