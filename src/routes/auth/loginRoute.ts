@@ -13,8 +13,8 @@ export const loginRoute: FastifyPluginAsyncZod = async (server) => {
       summary: "",
       description: "",
       body: z.object({
-        email: z.email(),
-        password: z.string(),
+        email: z.email("E-mail is required!"),
+        password: z.string("Password is required"),
       }),
       response: {
         200: z.object({

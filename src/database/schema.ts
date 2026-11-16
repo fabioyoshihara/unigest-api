@@ -167,21 +167,24 @@ export const enrollments = pgTable(
 )
 
 export const users = pgTable(
-  'users',
+  "users",
   {
-    id:           uuid('id').primaryKey().defaultRandom(),
-    name:         varchar('name', { length: 200 }).notNull(),
-    email:        varchar('email', { length: 120 }).notNull(),
-    passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-    role:         userRoleEnum('role').default('secretary').notNull(),
-    isActive:     boolean('is_active').default(true).notNull(),
-    createdAt:    timestamp('created_at').defaultNow().notNull(),
-    updatedAt:    timestamp('updated_at').defaultNow().notNull(),
+    id: uuid("id").primaryKey().defaultRandom(),
+    firstName: varchar("firstName", { length: 100 }).notNull(),
+    lastName: varchar("lastName", { length: 100 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    personalEmail: varchar("personal_email", { length: 255 }).notNull(),
+    passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+    mustChangePassword: boolean("must_change_password").default(true).notNull(),
+    role: userRoleEnum("role").default("secretary").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (t) => ({
-    emailUq: uniqueIndex('users_email_uq').on(t.email),
+    emailUq: uniqueIndex("users_email_uq").on(t.email),
   }),
-)
+);
 
 export const coursesRelations = relations(courses, ({ many }) => ({
   classes: many(classes),

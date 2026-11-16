@@ -3,7 +3,13 @@ import jwt from "jsonwebtoken";
 import type { JWTPayload } from "../../types/user.ts";
 
 export async function checkRequestJWT(request: FastifyRequest, reply: FastifyReply) {
-  const token = request.headers.authorization;
+  const authHeader = request.headers.authorization;
+
+  if (!authHeader) {
+    return reply.status(401).send({ message: "Token not provided" });
+  }
+
+  const [, token] = authHeader.split(" ");
 
   if(!token) {
     return reply.status(401).send("You aren't authorized to use this resource");
