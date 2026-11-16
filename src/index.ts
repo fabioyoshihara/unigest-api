@@ -1,5 +1,4 @@
 import "dotenv/config";
-
 import fastifySwagger from "@fastify/swagger";
 import { fastify } from "fastify";
 import cors from "@fastify/cors";
@@ -30,9 +29,11 @@ const server = fastify({
   },
 });
 
+const port = Number(process.env.PORT) || 3333;
+
 /* CORS */
 await server.register(cors, {
-  origin: true,
+  origin: "http://localhost:5173",
 });
 
 /* ZOD */
@@ -50,6 +51,10 @@ if (process.env.NODE_ENVIRONMENT === "development") {
       },
     },
     transform: jsonSchemaTransform,
+  });
+
+  server.get("/openapi.json", async () => {
+    return server.swagger();
   });
 
   await server.register(scalarAPIReference, {
@@ -72,7 +77,7 @@ server.register(createCourseRoute);
 /* SERVER */
 server.listen(
   {
-    port: 3333,
+    port,
     host: "0.0.0.0",
   },
   (err) => {
