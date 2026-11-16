@@ -56,9 +56,9 @@ server.listen({ port, host: '0.0.0.0' }, (err, address) => {
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
+server.register(loginRoute);
 server.register(createUserRoute); /* OK - SEM AUTENTICAÇÃO - EXIGIR AUTENTICAÇÃO */
 server.register(getUsersRoute);
-server.register(loginRoute);
 server.register(getStudentsRoute);
 server.register(createStudentRoute);
 server.register(createCourseRoute);
