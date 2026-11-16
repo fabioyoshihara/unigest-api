@@ -4,25 +4,42 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { eq } from 'drizzle-orm';
 import { users } from '../../database/schema.ts';
 import { hash } from 'argon2';
+import { checkRequestJWT } from '../hooks/check-request-jwt.ts';
+import { generateRandomPassword } from '../../utils/generateRandomPassword.ts';
+import { generateInstitutionalEmail } from '../../utils/generateInstitutionalEmail.ts';
+
+const MAX_RETRIES = 3;
 
 export const createUserRoute: FastifyPluginAsyncZod = async (server) => { 
   server.post(
     "/api/v1/users",
     {
+      preHandler: [checkRequestJWT],
       schema: {
         tags: ["Users"],
-        summary: "",
-        description: "Register an user with email, username and password",
+        summary: "Create User",
+        description:
+          "Create a user with permission to use system, email is generated automatically based on name ",
         body: z.object({
-          name: z.string().min(1, "Name is required"),
-          email: z.email().min(1, "Email is required"),
-          password: z
+          firstName: z
             .string()
-            .min(8, "Minimum 8 caracters is required to password"),
+            .trim()
+            .min(1, "First name is required")
+            .trim()
+            .max(100, "Maximum 100 characters"),
+          lastName: z
+            .string()
+            .min(1, "Last name is required")
+            .max(100, "Maximum 100 characters"),
+          personalEmail: z.string().email("Invalid Personal E-mail "),
         }),
         response: {
           201: z.object({
-            userId: z.string(),
+            id: z.string().uuid(),
+            firstName: z.string(),
+            lastName: z.string(),
+            email: z.string().email(),
+            temporaryPassword: z.string(),
           }),
           409: z.object({
             message: z.string(),
@@ -35,31 +52,68 @@ export const createUserRoute: FastifyPluginAsyncZod = async (server) => {
     },
     async (request, reply) => {
       try {
-        const { name, email, password } = request.body;
+        const { firstName, lastName, personalEmail } = request.body;
 
-        const emailExist = await db
+        const plainPassword = generateRandomPassword(8);
+        const passwordHash = await hash(plainPassword);
+
+        const personalEmailExist = await db
           .select()
           .from(users)
-          .where(eq(users.email, email));
+          .where(eq(users.personalEmail, personalEmail));
 
-        if (emailExist.length > 0) {
+        if (personalEmailExist.length > 0) {
           return reply
             .status(409)
             .send({ message: "Credentials is already been used!" });
         }
 
-        const passwordHash = await hash(password);
+        for (var attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            const email = await generateInstitutionalEmail(firstName, lastName);
+            const [createdUser] = await db
+              .insert(users)
+              .values({
+                firstName,
+                lastName,
+                email,
+                personalEmail,
+                passwordHash,
+                mustChangePassword: true,
+              })
+              .returning({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                email: users.email,
+                personalEmail: users.personalEmail,
+                mustChangePassword: users.mustChangePassword,
+              });
 
-        const result = await db
-          .insert(users)
-          .values({
-            name,
-            email,
-            passwordHash,
-          })
-          .returning();
+            return reply
+              .status(201)
+              .send({ ...createdUser, temporaryPassword: plainPassword });
+          } catch (err: unknown) {
+            const pgError = err as { code?: string };
 
-        return reply.status(201).send({ userId: result[0].id });
+            if (pgError?.code === "23505") {
+              if (attempt < MAX_RETRIES) {
+                request.log.warn(
+                  { attempt, firstName, lastName },
+                  "Colisão simultânea de e-mail institucional (23505). Tentando próximo sufixo...",
+                );
+                continue;
+              }
+
+              return reply.status(409).send({
+                message:
+                  "Não foi possível gerar um e-mail institucional único devido a alta concorrência.",
+              });
+            }
+
+            throw err;
+          }
+        }
       } catch (err) {
         console.error("Registration error:", err);
         return reply
