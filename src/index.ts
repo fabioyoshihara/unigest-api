@@ -18,6 +18,7 @@ import { createCourseRoute } from "./routes/courses/createCourseRoute.ts";
 import "dotenv/config"
 import { getUsersRoute } from "./routes/users/getUsersRoute.ts";
 import { healthRoute } from "./routes/health.ts";
+import { getUserByIdRoute } from "./routes/users/getUserByIdRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -77,12 +78,16 @@ if (process.env.NODE_ENVIRONMENT === "development") {
 }
 
 /* ROUTES */
-server.register(createUserRoute);
 server.register(loginRoute);
-server.register(createUserRoute); /* OK - SEM AUTENTICAÇÃO - EXIGIR AUTENTICAÇÃO */
+
+server.register(createUserRoute);
 server.register(getUsersRoute);
+server.register(getUserByIdRoute);
+
 server.register(getStudentsRoute);
+
 server.register(createStudentRoute);
+
 server.register(createCourseRoute);
 
 /* SERVER */
