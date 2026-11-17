@@ -22,24 +22,24 @@ import { getUserByIdRoute } from "./routes/users/getUserByIdRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
+const isDev =
+  process.env.NODE_ENV === "development" ||
+  process.env.NODE_ENVIRONMENT === "development";
+
 const server = fastify({
-  logger: {
-    transport: {
-      target: "pino-pretty",
-      options: {
-        translateTime: "HH:MM:ss Z",
-        ignore: "pid,hostname",
+  logger: isDev
+  ? {
+      transport: {
+        target: "pino-pretty",
+        options: {
+          translateTime: "HH:MM:ss Z",
+          ignore: "pid,hostname",
+        },
       },
-    },
-  },
+    }
+  : true,
 });
 
-server.listen({ port, host: '0.0.0.0' }, (err, address) => {
-  if(err) {
-    server.log.error(err);
-  }
-  console.log(`HTTP server is running, ${address}`);
-})
 /* CORS */
 await server.register(cors, {
   origin: "http://localhost:5173",
@@ -51,7 +51,7 @@ server.setSerializerCompiler(serializerCompiler);
 
 server.register(healthRoute);
 /* SWAGGER */
-if (process.env.NODE_ENVIRONMENT === "development") {
+if (isDev) {
   await server.register(fastifySwagger, {
     openapi: {
       info: {
@@ -96,13 +96,13 @@ server.listen(
     port,
     host: "0.0.0.0",
   },
-  (err) => {
+  (err, address) => {
     if (err) {
       server.log.error(err);
       process.exit(1);
     }
 
-    console.log("HTTP server is running!");
+    console.log(`HTTP server is running, ${address}`);
   }
 );
 

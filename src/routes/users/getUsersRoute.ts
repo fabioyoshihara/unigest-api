@@ -5,8 +5,9 @@ import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
 import { eq } from "drizzle-orm";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
-export function getUsersRoute() {
+export const getUsersRoute: FastifyPluginAsyncZod = async (server) => {
   server.get("/api/v1/users", { 
     preHandler: [ 
       checkRequestJWT,
@@ -69,7 +70,8 @@ export function getUsersRoute() {
       return reply.status(200).send(formattedUsers);
     } catch (err) { 
       request.log.error(err);
-      return reply.status(500).send({ message: err });
+      request.log.error(err)
+      return reply.status(500).send({ message: "Cannont search users, internal error!" });
     }
   })
 }

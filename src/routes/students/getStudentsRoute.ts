@@ -1,5 +1,5 @@
 import { students } from '../../database/schema.ts';
-import { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { z } from "zod";

@@ -5,7 +5,7 @@ import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
 import { eq } from "drizzle-orm";
-import { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => { 
   server.get("/api/v1/users/:id", { 
