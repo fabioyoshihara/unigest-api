@@ -15,7 +15,6 @@ import { createStudentRoute } from "./routes/students/createStudentsRoute.ts";
 import { createUserRoute } from "./routes/users/createUserRoute.ts";
 import { loginRoute } from "./routes/auth/loginRoute.ts";
 import { createCourseRoute } from "./routes/courses/createCourseRoute.ts";
-import "dotenv/config"
 import { getUsersRoute } from "./routes/users/getUsersRoute.ts";
 import { healthRoute } from "./routes/health.ts";
 import { getUserByIdRoute } from "./routes/users/getUserByIdRoute.ts";
@@ -42,7 +41,7 @@ const server = fastify({
 
 /* CORS */
 await server.register(cors, {
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "*",
 });
 
 /* ZOD */
