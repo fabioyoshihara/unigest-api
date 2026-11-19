@@ -2,47 +2,59 @@ import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { courses } from "../../database/schema.ts";
 import { db } from "../../database/client.ts";
+import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 
 export const createCourseRoute: FastifyPluginAsyncZod = async (server) => {
-  server.post("/api/v1/courses", {
-    schema: {
-      tags: ["Courses"],
-      summary: "",
-      description: "Register a course in database",
-      body: z.object({
-        name: z.string().min(1, "Course name is required"),
-        workload: z.number().min(1, "Workload is required"),
-        semesters: z.number().min(1, "Number of semesters required"),
-        modality: z.enum(["in_person", "online", "hybrid"]),
-        active: z.boolean().optional(),
-      }),
-      response: {
-        201: z.object({
-          courseId: z.string(),
+  server.post(
+    "/api/v1/courses",
+    {
+      preHandler: [checkRequestJWT],
+      schema: {
+        tags: ["Courses"],
+        summary: "Create course",
+        description:
+          "Register a course in database using name, workloadHours, duration semesters, modality (ead, in person or hybrid",
+        body: z.object({
+          name: z.string().min(1, "Course name is required"),
+          workloadHours: z.number().min(1, "Workload is required"),
+          durationSemesters: z.number().min(1, "Number of semesters required"),
+          modality: z.enum(["in_person", "online", "hybrid"]),
+          isActive: z.boolean().optional().default(true),
         }),
-        401: z.object({
-          message: z.string(),
-        })
+        response: {
+          201: z.object({
+            courseId: z.string(),
+          }),
+          401: z.object({
+            message: z.string(),
+          }),
+          500: z.object({
+            message: z.string(),
+          })
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { name, workloadHours, durationSemesters, modality, isActive } =
+          request.body;
+
+        const [result] = await db
+          .insert(courses)
+          .values({
+            name,
+            workloadHours,
+            durationSemesters,
+            modality,
+            isActive,
+          })
+          .returning();
+
+        return reply.status(201).send({ courseId: result.id });
+      } catch (err) {
+        request.log.error(err);
+        return reply.status(500).send({ message: `Couldn't complete this request, ${err}`})
       }
-    }
-  }, async (request, reply) => {
-    try {
-      const { name, workload, semesters, modality, active } = request.body;
-
-      const result = await db
-        .insert(courses)
-        .values({
-          name,
-          workloadHours: workload,
-          durationSemesters: semesters,
-          modality,
-          isActive: active,
-        })
-      .returning()
-
-      return reply.status(201).send({ courseId: result[0].id })
-    } catch (err) {
-      throw new Error(`Couldn't complete this request ${err}`);
-    }
-  })
+    },
+  );
 }
