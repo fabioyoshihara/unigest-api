@@ -28,16 +28,18 @@ const isDev =
 
 const server = fastify({
   logger: isDev
-  ? {
-      transport: {
-        target: "pino-pretty",
-        options: {
-          translateTime: "HH:MM:ss Z",
-          ignore: "pid,hostname",
+    ? {
+        level: "debug",
+        transport: {
+          target: "pino-pretty",
+          options: {
+            translateTime: "SYS:HH:MM:ss",
+            ignore: "pid,hostname",
+            colorize: true,
+          },
         },
-      },
-    }
-  : true,
+      }
+    : true,
 });
 
 /* CORS */
