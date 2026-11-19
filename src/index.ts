@@ -4,7 +4,6 @@ import { fastify } from "fastify";
 import cors from "@fastify/cors";
 
 import {
-  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
@@ -18,6 +17,8 @@ import { createCourseRoute } from "./routes/courses/createCourseRoute.ts";
 import { getUsersRoute } from "./routes/users/getUsersRoute.ts";
 import { healthRoute } from "./routes/health.ts";
 import { getUserByIdRoute } from "./routes/users/getUserByIdRoute.ts";
+import { getCoursesRoute } from "./routes/courses/getCoursesRoute.ts";
+import { swaggerConfig } from "./config/swagger.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -51,16 +52,7 @@ server.setSerializerCompiler(serializerCompiler);
 server.register(healthRoute);
 /* SWAGGER */
 if (isDev) {
-  await server.register(fastifySwagger, {
-    openapi: {
-      info: {
-        title: "Unigest API",
-        description: "API to university management",
-        version: "1.0.0",
-      },
-    },
-    transform: jsonSchemaTransform,
-  });
+  await server.register(fastifySwagger, swaggerConfig);
 
   server.get("/openapi.json", async () => {
     return server.swagger();
@@ -88,6 +80,7 @@ server.register(getStudentsRoute);
 server.register(createStudentRoute);
 
 server.register(createCourseRoute);
+server.register(getCoursesRoute);
 
 /* SERVER */
 server.listen(
