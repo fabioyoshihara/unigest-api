@@ -15,10 +15,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
-// ============================================================================
-// ENUMS (Domínios fixos do sistema)
-// ============================================================================
-
 export const degreeLevelEnum = pgEnum('degree_level', [
   'undergraduate',
   'specialization',
@@ -48,10 +44,6 @@ export const userRoleEnum = pgEnum('user_role', [
   'coordination',
 ])
 
-// ============================================================================
-// TABELAS
-// ============================================================================
-
 export const students = pgTable(
   'students',
   {
@@ -64,7 +56,6 @@ export const students = pgTable(
     registrationNumber: varchar('registration_number', { length: 20 }).notNull(),
     admissionDate:      timestamp('admission_date').notNull(),
     isActive:           boolean('is_active').default(true).notNull(),
-    // Corrigido: adicionado .notNull() e .$onUpdate() para manter o mesmo padrão das demais tabelas
     createdAt:          timestamp('created_at').defaultNow().notNull(),
     updatedAt:          timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
   },
@@ -131,7 +122,6 @@ export const courses = pgTable(
     updatedAt:         timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
   },
   (t) => ({
-    // Adicionado: evita duplicidade do mesmo curso na mesma modalidade
     nameModalityUq: uniqueIndex('courses_name_modality_uq').on(t.name, t.modality),
   }),
 )
@@ -154,10 +144,9 @@ export const classes = pgTable(
     updatedAt:    timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
   },
   (t) => ({
-    idxCourse:       index('classes_course_idx').on(t.courseId),
-    idxTeacher:      index('classes_teacher_idx').on(t.teacherId),
-    // Adicionado: impede choque de horário na mesma sala dentro do mesmo período letivo
-    roomScheduleUq:  uniqueIndex('classes_room_schedule_uq').on(t.year, t.semester, t.room, t.scheduleTime),
+    idxCourse:      index('classes_course_idx').on(t.courseId),
+    idxTeacher:     index('classes_teacher_idx').on(t.teacherId),
+    roomScheduleUq: uniqueIndex('classes_room_schedule_uq').on(t.year, t.semester, t.room, t.scheduleTime),
   }),
 )
 
@@ -188,10 +177,8 @@ export const users = pgTable(
   'users',
   {
     id:                 uuid('id').primaryKey().defaultRandom(),
-    // Corrigido: colunas no banco padronizadas em snake_case
     firstName:          varchar('first_name', { length: 100 }).notNull(),
     lastName:           varchar('last_name', { length: 100 }).notNull(),
-    // Corrigido: removido .unique() redundante para manter apenas o uniqueIndex explícito abaixo
     email:              varchar('email', { length: 255 }).notNull(),
     personalEmail:      varchar('personal_email', { length: 255 }).notNull(),
     passwordHash:       varchar('password_hash', { length: 255 }).notNull(),
@@ -205,10 +192,6 @@ export const users = pgTable(
     emailUq: uniqueIndex('users_email_uq').on(t.email),
   }),
 )
-
-// ============================================================================
-// RELACIONAMENTOS (Drizzle Relational Queries)
-// ============================================================================
 
 export const coursesRelations = relations(courses, ({ many }) => ({
   classes: many(classes),
@@ -232,10 +215,6 @@ export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
   student: one(students, { fields: [enrollments.studentId], references: [students.id] }),
   class:   one(classes, { fields: [enrollments.classId], references: [classes.id] }),
 }))
-
-// ============================================================================
-// SCHEMA AGREGADO E TIPOS INFERIDOS (Para uso nas rotas, seeds e testes)
-// ============================================================================
 
 export const schema = {
   degreeLevelEnum,
