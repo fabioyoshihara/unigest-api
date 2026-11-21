@@ -14,6 +14,7 @@ import {
   index,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { genderEnum, studentStatusEnum } from './schema/enums.ts'
 
 export const degreeLevelEnum = pgEnum('degree_level', [
   'undergraduate',
@@ -45,26 +46,38 @@ export const userRoleEnum = pgEnum('user_role', [
 ])
 
 export const students = pgTable(
-  'students',
+  "students",
   {
-    id:                 uuid('id').primaryKey().defaultRandom(),
-    name:               varchar('name', { length: 200 }).notNull(),
-    cpf:                varchar('cpf', { length: 14 }).notNull(),
-    email:              varchar('email', { length: 120 }).notNull(),
-    phone:              varchar('phone', { length: 20 }).notNull(),
-    address:            varchar('address', { length: 255 }).notNull(),
-    registrationNumber: varchar('registration_number', { length: 20 }).notNull(),
-    admissionDate:      timestamp('admission_date').notNull(),
-    isActive:           boolean('is_active').default(true).notNull(),
-    createdAt:          timestamp('created_at').defaultNow(),
-    updatedAt:          timestamp('updated_at').defaultNow(),
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 200 }).notNull(),
+    cpf: varchar("cpf", { length: 14 }).notNull(),
+    email: varchar("email", { length: 120 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    secondaryPhone: varchar("secondary_phone", { length: 20 }),
+    address: varchar("address", { length: 255 }).notNull(),
+    registrationNumber: varchar("registration_number", {
+      length: 20,
+    }).notNull(),
+    admissionDate: timestamp("admission_date").notNull(),
+    birthDate: date("birth_date"),
+    gender: genderEnum("gender"),
+    nationality: varchar("nationality", { length: 80 }),
+    naturalness: varchar("naturalness", { length: 120 }),
+    photoUrl: varchar("photo_url", { length: 500 }),
+    emergencyContact: varchar("emergency_contact", { length: 120 }),
+    status: studentStatusEnum("status").default("active").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
   },
   (t) => ({
-    cpfUq:                uniqueIndex('students_cpf_uq').on(t.cpf),
-    emailUq:              uniqueIndex('students_email_uq').on(t.email),
-    registrationNumberUq: uniqueIndex('students_registration_number_uq').on(t.registrationNumber),
+    cpfUq: uniqueIndex("students_cpf_uq").on(t.cpf),
+    emailUq: uniqueIndex("students_email_uq").on(t.email),
+    registrationNumberUq: uniqueIndex("students_registration_number_uq").on(
+      t.registrationNumber,
+    ),
   }),
-)
+);
 
 export const teachers = pgTable(
   'teachers',
