@@ -1,13 +1,11 @@
 import { z } from "zod";
-import { server } from "../../index.ts";
-import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
 import { and, eq } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
-export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => { 
+export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
   server.get(
     "/api/v1/users/:id",
     {
@@ -41,7 +39,6 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
       },
     },
     async (request, reply) => {
-      const user = getUserFromRequest(request);
       const userId = request.params.id;
 
       try {
@@ -71,13 +68,13 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
           ...foundUser,
           createdAt: foundUser.createdAt.toISOString(),
           updatedAt: foundUser.updatedAt.toISOString(),
-        })
+        });
       } catch (err) {
         request.log.error(err);
         return reply
           .status(500)
           .send({ message: "Cannot complete this request: " });
       }
-    },
+    }
   );
-}
+};
