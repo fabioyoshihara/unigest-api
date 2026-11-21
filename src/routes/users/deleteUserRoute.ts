@@ -4,9 +4,11 @@ import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
 import { and, eq } from "drizzle-orm";
+import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 
 export const deleteUserRoute: FastifyPluginAsyncZod = async (server) => { 
   server.delete("/api/v1/users/:id", { 
+    preHandler: [checkRequestJWT],
     schema: { 
       tags: ["Users"],
       summary: "Delete User",
