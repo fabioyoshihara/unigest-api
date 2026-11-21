@@ -20,6 +20,7 @@ import { getUserByIdRoute } from "./routes/users/getUserByIdRoute.ts";
 import { getCoursesRoute } from "./routes/courses/getCoursesRoute.ts";
 import { swaggerConfig } from "./config/swagger.ts";
 import { deleteUserRoute } from "./routes/users/deleteUserRoute.ts";
+import { deleteStudentRoute } from "./routes/students/deleteStudentRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -80,8 +81,8 @@ server.register(getUserByIdRoute);
 server.register(deleteUserRoute);
 
 server.register(getStudentsRoute);
-
 server.register(createStudentRoute);
+server.register(deleteStudentRoute);
 
 server.register(createCourseRoute);
 server.register(getCoursesRoute);
