@@ -1,19 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
-import { buildApp } from "../../../src/app.ts";
+// Importa a instância única do servidor diretamente do index.ts
+import { server } from "../../../src/index.ts";
 import { db } from "../../../src/database/client.ts";
 import { courses } from "../../../src/database/schema.ts";
 
 describe("POST /api/v1/courses", () => {
-  let app: FastifyInstance;
   let createdCourseId: string | null = null;
 
+  // Aguarda o Fastify terminar de carregar todos os plugins e rotas antes dos testes
   beforeAll(async () => {
-    app = await buildApp();
-    await app.ready();
+    await server.ready();
   });
 
+  // Limpa o registro criado no banco após cada teste para manter o ambiente isolado
   afterEach(async () => {
     if (createdCourseId) {
       await db.delete(courses).where(eq(courses.id, createdCourseId));
@@ -21,8 +21,9 @@ describe("POST /api/v1/courses", () => {
     }
   });
 
+  // Encerra a instância do Fastify ao finalizar a suíte
   afterAll(async () => {
-    await app.close();
+    await server.close();
   });
 
   it("should create a valid course and return 201 with courseId", async () => {
@@ -34,7 +35,7 @@ describe("POST /api/v1/courses", () => {
       active: true,
     };
 
-    const response = await app.inject({
+    const response = await server.inject({
       method: "POST",
       url: "/api/v1/courses",
       payload,
@@ -60,7 +61,7 @@ describe("POST /api/v1/courses", () => {
   });
 
   it("should return 400 when request body fails Zod validation", async () => {
-    const response = await app.inject({
+    const response = await server.inject({
       method: "POST",
       url: "/api/v1/courses",
       payload: {
@@ -87,7 +88,7 @@ describe("POST /api/v1/courses", () => {
 
     createdCourseId = existing.id;
 
-    const response = await app.inject({
+    const response = await server.inject({
       method: "POST",
       url: "/api/v1/courses",
       payload: {
