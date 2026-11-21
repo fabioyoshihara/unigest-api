@@ -14,36 +14,8 @@ import {
   index,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
-import { genderEnum, studentStatusEnum } from './schema/enums.ts'
-
-export const degreeLevelEnum = pgEnum('degree_level', [
-  'undergraduate',
-  'specialization',
-  'master',
-  'doctorate',
-])
-
-export const courseModalityEnum = pgEnum('course_modality', [
-  'in_person',
-  'online',
-  'hybrid',
-])
-
-export const academicSemesterEnum = pgEnum('academic_semester', ['1', '2'])
-
-export const enrollmentStatusEnum = pgEnum('enrollment_status', [
-  'in_progress',
-  'approved',
-  'failed',
-  'withdrawn',
-])
-
-export const userRoleEnum = pgEnum('user_role', [
-  'admin',
-  'secretary',
-  'finance',
-  'coordination',
-])
+import { academicSemesterEnum, courseModalityEnum, degreeLevelEnum, enrollmentStatusEnum, genderEnum, studentStatusEnum, userRoleEnum } from './schema/enums.ts'
+import { classesRelations, coursesRelations, enrollmentsRelations, studentsRelations, teachersRelations } from './schema/relations.ts';
 
 export const students = pgTable(
   "students",
@@ -198,29 +170,6 @@ export const users = pgTable(
     emailUq: uniqueIndex("users_email_uq").on(t.email),
   }),
 );
-
-export const coursesRelations = relations(courses, ({ many }) => ({
-  classes: many(classes),
-}))
-
-export const teachersRelations = relations(teachers, ({ many }) => ({
-  classes: many(classes),
-}))
-
-export const studentsRelations = relations(students, ({ many }) => ({
-  enrollments: many(enrollments),
-}))
-
-export const classesRelations = relations(classes, ({ one, many }) => ({
-  course:      one(courses, { fields: [classes.courseId], references: [courses.id] }),
-  teacher:     one(teachers, { fields: [classes.teacherId], references: [teachers.id] }),
-  enrollments: many(enrollments),
-}))
-
-export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
-  student: one(students, { fields: [enrollments.studentId], references: [students.id] }),
-  class:   one(classes, { fields: [enrollments.classId], references: [classes.id] }),
-}))
 
 export const schema = {
   degreeLevelEnum,
