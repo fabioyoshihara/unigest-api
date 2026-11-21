@@ -13,58 +13,41 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
-
-export const degreeLevelEnum = pgEnum('degree_level', [
-  'undergraduate',
-  'specialization',
-  'master',
-  'doctorate',
-])
-
-export const courseModalityEnum = pgEnum('course_modality', [
-  'in_person',
-  'online',
-  'hybrid',
-])
-
-export const academicSemesterEnum = pgEnum('academic_semester', ['1', '2'])
-
-export const enrollmentStatusEnum = pgEnum('enrollment_status', [
-  'in_progress',
-  'approved',
-  'failed',
-  'withdrawn',
-])
-
-export const userRoleEnum = pgEnum('user_role', [
-  'admin',
-  'secretary',
-  'finance',
-  'coordination',
-])
+import { academicSemesterEnum, courseModalityEnum, degreeLevelEnum, enrollmentStatusEnum, genderEnum, studentStatusEnum, userRoleEnum } from './schema/enums.ts'
 
 export const students = pgTable(
-  'students',
+  "students",
   {
-    id:                 uuid('id').primaryKey().defaultRandom(),
-    name:               varchar('name', { length: 200 }).notNull(),
-    cpf:                varchar('cpf', { length: 14 }).notNull(),
-    email:              varchar('email', { length: 120 }).notNull(),
-    phone:              varchar('phone', { length: 20 }).notNull(),
-    address:            varchar('address', { length: 255 }).notNull(),
-    registrationNumber: varchar('registration_number', { length: 20 }).notNull(),
-    admissionDate:      timestamp('admission_date').notNull(),
-    isActive:           boolean('is_active').default(true).notNull(),
-    createdAt:          timestamp('created_at').defaultNow(),
-    updatedAt:          timestamp('updated_at').defaultNow(),
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 200 }).notNull(),
+    cpf: varchar("cpf", { length: 14 }).notNull(),
+    email: varchar("email", { length: 120 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    secondaryPhone: varchar("secondary_phone", { length: 20 }),
+    address: varchar("address", { length: 255 }).notNull(),
+    registrationNumber: varchar("registration_number", {
+      length: 20,
+    }).notNull(),
+    admissionDate: timestamp("admission_date").notNull(),
+    birthDate: date("birth_date"),
+    gender: genderEnum("gender"),
+    nationality: varchar("nationality", { length: 80 }),
+    naturalness: varchar("naturalness", { length: 120 }),
+    photoUrl: varchar("photo_url", { length: 500 }),
+    emergencyContact: varchar("emergency_contact", { length: 120 }),
+    status: studentStatusEnum("status").default("active").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
   },
   (t) => ({
-    cpfUq:                uniqueIndex('students_cpf_uq').on(t.cpf),
-    emailUq:              uniqueIndex('students_email_uq').on(t.email),
-    registrationNumberUq: uniqueIndex('students_registration_number_uq').on(t.registrationNumber),
+    cpfUq: uniqueIndex("students_cpf_uq").on(t.cpf),
+    emailUq: uniqueIndex("students_email_uq").on(t.email),
+    registrationNumberUq: uniqueIndex("students_registration_number_uq").on(
+      t.registrationNumber,
+    ),
   }),
-)
+);
 
 export const teachers = pgTable(
   'teachers',
@@ -186,36 +169,7 @@ export const users = pgTable(
   }),
 );
 
-export const coursesRelations = relations(courses, ({ many }) => ({
-  classes: many(classes),
-}))
-
-export const teachersRelations = relations(teachers, ({ many }) => ({
-  classes: many(classes),
-}))
-
-export const studentsRelations = relations(students, ({ many }) => ({
-  enrollments: many(enrollments),
-}))
-
-export const classesRelations = relations(classes, ({ one, many }) => ({
-  course:      one(courses, { fields: [classes.courseId], references: [courses.id] }),
-  teacher:     one(teachers, { fields: [classes.teacherId], references: [teachers.id] }),
-  enrollments: many(enrollments),
-}))
-
-export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
-  student: one(students, { fields: [enrollments.studentId], references: [students.id] }),
-  class:   one(classes, { fields: [enrollments.classId], references: [classes.id] }),
-}))
-
 export const schema = {
-  degreeLevelEnum,
-  courseModalityEnum,
-  academicSemesterEnum,
-  enrollmentStatusEnum,
-  userRoleEnum,
-
   students,
   teachers,
   suppliers,
@@ -223,10 +177,4 @@ export const schema = {
   classes,
   enrollments,
   users,
-
-  coursesRelations,
-  teachersRelations,
-  studentsRelations,
-  classesRelations,
-  enrollmentsRelations,
 } as const
