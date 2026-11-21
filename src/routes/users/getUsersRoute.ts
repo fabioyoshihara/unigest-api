@@ -1,77 +1,81 @@
+
 import { z } from "zod";
-import { server } from "../../index.ts";
-import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
-import { eq } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 export const getUsersRoute: FastifyPluginAsyncZod = async (server) => {
-  server.get("/api/v1/users", { 
-    preHandler: [ 
-      checkRequestJWT,
-    ],
-    schema: { 
-      tags: ["Users"],
-      summary: "Get Users",
-      description: "Return info from all users registered to use system, require authenticate and return name, educational address, role, createdAt and UpdatedAt",
-      response: { 
-        200: z.array(
-          z.object({ 
-            id: z.string().uuid(),
-            name: z.string(),
-            email: z.email(),
-            role: z.string(),
-            isActive: z.boolean(),
-            createdAt: z.string(),
-            updatedAt: z.string(),
+  server.get(
+    "/api/v1/users",
+    {
+      preHandler: [checkRequestJWT],
+      schema: {
+        tags: ["Users"],
+        summary: "Get Users",
+        description: "List all internal system users.",
+        response: {
+          200: z.array(
+            z.object({
+              id: z.string().uuid(),
+              firstName: z.string(),
+              lastName: z.string(),
+              name: z.string(),
+              email: z.email(),
+              personalEmail: z.email(),
+              role: z.enum([
+                "admin",
+                "secretary",
+                "finance",
+                "coordination",
+              ]),
+              isActive: z.boolean(),
+              createdAt: z.string(),
+              updatedAt: z.string(),
+            })
+          ),
+          401: z.object({
+            message: z.string(),
+          }),
+          500: z.object({
+            message: z.string(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const result = await db
+          .select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            personalEmail: users.personalEmail,
+            role: users.role,
+            isActive: users.isActive,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
           })
-        ),
-        404: z.object({ 
-          message: z.string(),
-        }),
-        500: z.object({ 
-          message: z.string(),
-        })
+          .from(users)
+          .orderBy(asc(users.firstName));
+
+        const formattedUsers = result.map((user) => ({
+          ...user,
+          name: `${user.firstName} ${user.lastName}`,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        }));
+
+        return reply.status(200).send(formattedUsers);
+      } catch (err) {
+        request.log.error(err);
+
+        return reply.status(500).send({
+          message: "Unable to retrieve users. Internal server error.",
+        });
       }
     }
-  }, async (request, reply) => { 
-    const user = getUserFromRequest(request);
-    try { 
-      const result = await db
-        .select({
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          role: users.role,
-          isActive: users.isActive,
-          createdAt: users.createdAt,
-          updatedAt: users.updatedAt
-        })
-        .from(users)
-        .where(eq(users.isActive, true))
-
-      if(result.length === 0) { 
-        return reply.status(404).send({ message: "No users found!" });
-      }
-
-      const formattedUsers = result.map((u) => ({
-        id: u.id,
-        name: `${u.firstName} ${u.lastName}`,
-        email: u.email,
-        role: u.role,
-        isActive: u.isActive,
-        createdAt: u.createdAt.toISOString(),
-        updatedAt: u.updatedAt.toISOString(),
-      }));
-        
-      return reply.status(200).send(formattedUsers);
-    } catch (err) { 
-      request.log.error(err);
-      request.log.error(err)
-      return reply.status(500).send({ message: "Cannont search users, internal error!" });
-    }
-  })
-}
+  );
+};
