@@ -10,8 +10,8 @@ export const loginRoute: FastifyPluginAsyncZod = async (server) => {
   server.post("/api/v1/login", {
     schema: { 
       tags: ["Authentication"],
-      summary: "",
-      description: "",
+      summary: "Login Route",
+      description: "Use this resource to get Bearer Token and use on other routes, you need an email and password to proceed, valid with database",
       body: z.object({
         email: z.email("E-mail is required!"),
         password: z.string("Password is required"),

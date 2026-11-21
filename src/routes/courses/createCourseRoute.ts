@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { courses } from "../../database/schema.ts";
 import { db } from "../../database/client.ts";
+import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 
 function isUniqueViolation(err: unknown): boolean {
   if (typeof err !== "object" || err === null) return false;
