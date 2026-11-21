@@ -49,7 +49,7 @@ const server = fastify({
         },
       },
     }
-    : true,
+    : !isTest,
 });
 
 /* CORS */
