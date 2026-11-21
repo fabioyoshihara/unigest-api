@@ -4,6 +4,7 @@ import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { z } from "zod";
 import { db } from "../../database/client.ts";
+import { eq } from 'drizzle-orm';
 
 export const getStudentsRoute: FastifyPluginAsyncZod = async (server) => {
   server.get(
@@ -43,7 +44,6 @@ export const getStudentsRoute: FastifyPluginAsyncZod = async (server) => {
     async (request, reply) => {
       try {
         const user = getUserFromRequest(request);
-        // const { search } = request.params;
 
         if (!user) {
           return reply
@@ -51,8 +51,7 @@ export const getStudentsRoute: FastifyPluginAsyncZod = async (server) => {
             .send({ message: "You are'n authorized to use this resource" });
         }
 
-        const result = await db.select().from(students);
-        // .orderBy()
+        const result = await db.select().from(students).where(eq(students.isActive, true));
 
         return reply.status(200).send({ students: result });
       } catch (error) {
