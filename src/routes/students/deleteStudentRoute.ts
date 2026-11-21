@@ -12,7 +12,7 @@ export const deleteStudentRoute: FastifyPluginAsyncZod = async (server) => {
     schema: { 
       tags: ["Students"],
       summary: "Delete Student",
-      description: "",
+      description: "Inactivate an student, logic delete, you need an ID and info on request, you should be authenticate to use this resource",
       params: z.object({
         id: z.string().uuid(),
       }),
