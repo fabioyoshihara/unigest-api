@@ -13,9 +13,7 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
 import { academicSemesterEnum, courseModalityEnum, degreeLevelEnum, enrollmentStatusEnum, genderEnum, studentStatusEnum, userRoleEnum } from './schema/enums.ts'
-import { classesRelations, coursesRelations, enrollmentsRelations, studentsRelations, teachersRelations } from './schema/relations.ts';
 
 export const students = pgTable(
   "students",
@@ -172,12 +170,6 @@ export const users = pgTable(
 );
 
 export const schema = {
-  degreeLevelEnum,
-  courseModalityEnum,
-  academicSemesterEnum,
-  enrollmentStatusEnum,
-  userRoleEnum,
-
   students,
   teachers,
   suppliers,
@@ -185,10 +177,4 @@ export const schema = {
   classes,
   enrollments,
   users,
-
-  coursesRelations,
-  teachersRelations,
-  studentsRelations,
-  classesRelations,
-  enrollmentsRelations,
 } as const

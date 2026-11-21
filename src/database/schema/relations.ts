@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import { classes, courses, enrollments, students, suppliers, teachers, users } from "../schema.ts";
-import { academicSemesterEnum, courseModalityEnum, degreeLevelEnum, enrollmentStatusEnum, userRoleEnum } from "./enums.ts";
 
 export const coursesRelations = relations(courses, ({ many }) => ({
   classes: many(classes),
@@ -36,25 +35,3 @@ export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
     references: [classes.id],
   }),
 }));
-
-export const schema = {
-  degreeLevelEnum,
-  courseModalityEnum,
-  academicSemesterEnum,
-  enrollmentStatusEnum,
-  userRoleEnum,
-
-  students,
-  teachers,
-  suppliers,
-  courses,
-  classes,
-  enrollments,
-  users,
-
-  coursesRelations,
-  teachersRelations,
-  studentsRelations,
-  classesRelations,
-  enrollmentsRelations,
-} as const;
