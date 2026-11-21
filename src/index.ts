@@ -33,22 +33,25 @@ const isDev =
 const server = fastify({
   logger: isDev
     ? {
-        level: "debug",
-        transport: {
-          target: "pino-pretty",
-          options: {
-            translateTime: "SYS:HH:MM:ss",
-            ignore: "pid,hostname",
-            colorize: true,
-          },
+      level: "debug",
+      transport: {
+        target: "pino-pretty",
+        options: {
+          translateTime: "SYS:HH:MM:ss",
+          ignore: "pid,hostname",
+          colorize: true,
         },
-      }
+      },
+    }
     : true,
 });
 
 /* CORS */
+/* CORS */
 await server.register(cors, {
   origin: process.env.FRONTEND_URL || "*",
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Authorization", "Content-Type"],
 });
 
 /* ZOD */
