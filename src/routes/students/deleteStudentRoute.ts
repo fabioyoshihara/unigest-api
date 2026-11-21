@@ -1,4 +1,4 @@
-import { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { z } from "zod";

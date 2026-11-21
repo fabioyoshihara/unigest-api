@@ -4,7 +4,6 @@ import { z } from "zod";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { db } from "../../database/client.ts";
 import { students } from "../../database/schema.ts";
-import { eq } from "drizzle-orm";
 import { genderEnum, studentStatusEnum } from "../../database/schema/enums.ts";
 import { randomUUID } from "node:crypto";
 
