@@ -18,6 +18,12 @@ import { createCourseRoute } from "./routes/courses/createCourseRoute.ts";
 import { getUsersRoute } from "./routes/users/getUsersRoute.ts";
 import { healthRoute } from "./routes/health.ts";
 import { getUserByIdRoute } from "./routes/users/getUserByIdRoute.ts";
+import { getCoursesRoute } from "./routes/courses/getCoursesRoute.ts";
+import { swaggerConfig } from "./config/swagger.ts";
+import { deleteUserRoute } from "./routes/users/deleteUserRoute.ts";
+import { deleteStudentRoute } from "./routes/students/deleteStudentRoute.ts";
+import { deleteCourseRoute } from "./routes/courses/deleteCourseRoute.ts";
+import { getStudentByIdRoute } from "./routes/students/getStudentByIdRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -33,22 +39,25 @@ const isDev =
 const server = fastify({
   logger: isDev
     ? {
-        level: "debug",
-        transport: {
-          target: "pino-pretty",
-          options: {
-            translateTime: "SYS:HH:MM:ss",
-            ignore: "pid,hostname",
-            colorize: true,
-          },
+      level: "debug",
+      transport: {
+        target: "pino-pretty",
+        options: {
+          translateTime: "SYS:HH:MM:ss",
+          ignore: "pid,hostname",
+          colorize: true,
         },
-      }
-    : false,
+      },
+    }
+    : true,
 });
 
 /* CORS */
+/* CORS */
 await server.register(cors, {
   origin: process.env.FRONTEND_URL || "*",
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Authorization", "Content-Type"],
 });
 
 /* ZOD */
@@ -90,11 +99,16 @@ server.register(loginRoute);
 server.register(createUserRoute);
 server.register(getUsersRoute);
 server.register(getUserByIdRoute);
+server.register(deleteUserRoute);
 
 server.register(getStudentsRoute);
+server.register(getStudentByIdRoute);
 server.register(createStudentRoute);
+server.register(deleteStudentRoute);
 
 server.register(createCourseRoute);
+server.register(getCoursesRoute);
+server.register(deleteCourseRoute);
 
 /* SERVER */
 // Só abre a porta de rede se NÃO estiver rodando dentro do Vitest

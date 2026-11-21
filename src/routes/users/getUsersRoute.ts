@@ -1,7 +1,8 @@
+
 import { z } from "zod";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
-import { eq } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
