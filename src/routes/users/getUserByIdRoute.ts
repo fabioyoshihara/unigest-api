@@ -1,13 +1,12 @@
+
 import { z } from "zod";
-import { server } from "../../index.ts";
-import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
-export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => { 
+export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
   server.get(
     "/api/v1/users/:id",
     {
@@ -15,8 +14,7 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
       schema: {
         tags: ["Users"],
         summary: "Get user info by ID",
-        description:
-          "Return all info of user searching by ID, return first name, last name, email, role, createdAt and updatedAt, require be authenticate to use this resource",
+        description: "Return user information by ID.",
         params: z.object({
           id: z.string().uuid(),
         }),
@@ -26,7 +24,7 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
             firstName: z.string().min(1),
             lastName: z.string().min(1),
             email: z.email(),
-            personalEmail: z.email().nullable().optional(),
+            personalEmail: z.email(),
             role: z.string(),
             createdAt: z.string(),
             updatedAt: z.string(),
@@ -41,7 +39,6 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
       },
     },
     async (request, reply) => {
-      const user = getUserFromRequest(request);
       const userId = request.params.id;
 
       try {
@@ -57,12 +54,12 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
             updatedAt: users.updatedAt,
           })
           .from(users)
-          .where(and(eq(users.id, userId), eq(users.isActive, true)));
+          .where(eq(users.id, userId));
 
         if (result.length === 0) {
-          return reply
-            .status(404)
-            .send({ message: "User not found, verify ID and try again" });
+          return reply.status(404).send({
+            message: "User not found, verify ID and try again.",
+          });
         }
 
         const foundUser = result[0];
@@ -71,13 +68,14 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
           ...foundUser,
           createdAt: foundUser.createdAt.toISOString(),
           updatedAt: foundUser.updatedAt.toISOString(),
-        })
+        });
       } catch (err) {
         request.log.error(err);
-        return reply
-          .status(500)
-          .send({ message: "Cannot complete this request: " });
+
+        return reply.status(500).send({
+          message: "Unable to retrieve user. Internal server error.",
+        });
       }
     },
   );
-}
+};
