@@ -8,6 +8,7 @@ import {
   classStatusEnum,
 } from "../../database/schema/enums.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
+import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 
 export const getClassesRoute: FastifyPluginAsyncZod = async (server) => {
   server.get(
@@ -35,11 +36,18 @@ export const getClassesRoute: FastifyPluginAsyncZod = async (server) => {
               updatedAt: z.string(),
             }),
           ),
+          401: z.object({ message: z.string() }),
           500: z.object({ message: z.string() }),
         },
       },
     },
     async (request, reply) => {
+      const user = getUserFromRequest(request);
+      
+      if(!user) { 
+        return reply.status(401).send({ message: "You aren't authorized" })
+      }
+
       try {
         const result = await db
           .select()

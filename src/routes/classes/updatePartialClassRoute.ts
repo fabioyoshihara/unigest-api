@@ -8,6 +8,7 @@ import {
   classStatusEnum,
 } from "../../database/schema/enums.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
+import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 
 export const updatePartialClassRoute: FastifyPluginAsyncZod = async (server) => {
   server.patch(
@@ -47,6 +48,7 @@ export const updatePartialClassRoute: FastifyPluginAsyncZod = async (server) => 
           }),
         response: {
           200: z.object({ message: z.string() }),
+          401: z.object({ message: z.string() }),
           404: z.object({ message: z.string() }),
           400: z.object({ message: z.string() }),
           500: z.object({ message: z.string() }),
@@ -56,6 +58,11 @@ export const updatePartialClassRoute: FastifyPluginAsyncZod = async (server) => 
     async (request, reply) => {
       const { id } = request.params;
       const body = request.body;
+      const user = getUserFromRequest(request);
+      
+      if(!user) { 
+        return reply.status(401).send({ message: "You aren't authorized" })
+      }
 
       try {
         const updated = await db
