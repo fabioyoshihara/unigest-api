@@ -9,7 +9,7 @@ import {
 } from "../../database/schema/enums.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 
-export const putClassRoute: FastifyPluginAsyncZod = async (server) => {
+export const updateClassRoute: FastifyPluginAsyncZod = async (server) => {
   server.put(
     "/api/v1/classes/:id",
     {
