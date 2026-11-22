@@ -34,6 +34,11 @@ import { createClassRoute } from "./routes/classes/createClassRoute.ts";
 import { deleteClassRoute } from "./routes/classes/deleteClassRoute.ts";
 import { updateClassRoute } from "./routes/classes/updateClassRoute.ts";
 import { updatePartialClassRoute } from "./routes/classes/updatePartialClassRoute.ts";
+import { getTeachersRoute } from "./routes/teachers/getTeachersRoute.ts";
+import { getTeacherByIdRoute } from "./routes/teachers/getTeacherByIdRoute.ts";
+import { createTeacherRoute } from "./routes/teachers/createTeacherRoute.ts";
+import { updateTeacherRoute } from "./routes/teachers/updateTeacherRoute.ts";
+import { updatePartialTeacherRoute } from "./routes/teachers/updatePartialTeacherRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -115,8 +120,14 @@ server.register(getClassesRoute);
 server.register(getClassByIdRoute);
 server.register(createClassRoute);
 server.register(deleteClassRoute);
-server.register(updateClassRoute)
-server.register(updatePartialClassRoute)
+server.register(updateClassRoute);
+server.register(updatePartialClassRoute);
+
+server.register(getTeachersRoute);
+server.register(getTeacherByIdRoute);
+server.register(createTeacherRoute);
+server.register(updateTeacherRoute);
+server.register(updatePartialTeacherRoute);
 
 /* SERVER */
 server.listen(
