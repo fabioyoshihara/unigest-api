@@ -31,6 +31,9 @@ export const getSupplierRoute: FastifyPluginAsyncZod = async (server) => {
         404: z.object({ 
           message: z.string(),
         }),
+        401: z.object({
+          message: z.string(),
+        }),
         409: z.object({
           message: z.string(),
         }),
@@ -43,7 +46,7 @@ export const getSupplierRoute: FastifyPluginAsyncZod = async (server) => {
     const user = getUserFromRequest(request);
 
     if(!user) { 
-      return reply.status(409).send({ message: "You aren't authorized" })
+      return reply.status(401).send({ message: "You aren't authorized" })
     }
 
     try { 
