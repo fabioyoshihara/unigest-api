@@ -29,6 +29,7 @@ import { createSupplierRoute } from "./routes/suppliers/createSupplierRoute.ts";
 import { getSupplierByIdRoute } from "./routes/suppliers/getSupplierByIdRoute.ts";
 import { deleteSupplierRoute } from "./routes/suppliers/deleteSupplierRoute.ts";
 import { getClassesRoute } from "./routes/classes/getClassesRoute.ts";
+import { getClassByIdRoute } from "./routes/classes/getClassByIdRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -107,6 +108,7 @@ server.register(createSupplierRoute);
 server.register(deleteSupplierRoute);
 
 server.register(getClassesRoute);
+server.register(getClassByIdRoute);
 
 /* SERVER */
 server.listen(
