@@ -24,6 +24,10 @@ import { deleteStudentRoute } from "./routes/students/deleteStudentRoute.ts";
 import { deleteCourseRoute } from "./routes/courses/deleteCourseRoute.ts";
 import { getStudentByIdRoute } from "./routes/students/getStudentByIdRoute.ts";
 import { getCourseByIdRoute } from "./routes/courses/getCourseByIdRoute.ts";
+import { getSupplierRoute } from "./routes/suppliers/getSupplierRoute.ts";
+import { createSupplierRoute } from "./routes/suppliers/createSupplierRoute.ts";
+import { getSupplierByIdRoute } from "./routes/suppliers/getSupplierByIdRoute.ts";
+import { deleteSupplierRoute } from "./routes/suppliers/deleteSupplierRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -95,6 +99,11 @@ server.register(getCoursesRoute);
 server.register(getCourseByIdRoute);
 server.register(createCourseRoute);
 server.register(deleteCourseRoute);
+
+server.register(getSupplierRoute);
+server.register(getSupplierByIdRoute);
+server.register(createSupplierRoute);
+server.register(deleteSupplierRoute);
 
 /* SERVER */
 server.listen(
