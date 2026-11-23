@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { asc, desc } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { db } from "../../database/client.ts";
 import { classes } from "../../database/schema.ts";
 import {
@@ -56,7 +56,8 @@ export const getClassesRoute: FastifyPluginAsyncZod = async (server) => {
             desc(classes.year),
             asc(classes.semester),
             asc(classes.description),
-          );
+          )
+          .where(eq(classes.isActive, true));
 
         return reply.status(200).send(
           result.map((item) => ({
