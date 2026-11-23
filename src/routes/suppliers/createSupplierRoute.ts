@@ -23,6 +23,7 @@ export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
           phone: z.string().trim().min(8).max(20),
           address: z.string().trim().min(5).max(255),
           category: z.string().trim().min(2).max(100),
+          isActive: z.boolean().default(true).optional(),
         }),
         response: {
           201: z.object({
@@ -46,7 +47,7 @@ export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
       }
 
       try {
-        const supplierExist = await db
+        const [supplierExist] = await db
           .select()
           .from(suppliers)
           .where(eq(suppliers.cnpj, data.cnpj))

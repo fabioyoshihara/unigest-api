@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "../../database/client.ts";
 import { teachers } from "../../database/schema.ts";
 import { degreeLevelEnum } from "../../database/schema/enums.ts";
@@ -49,7 +49,8 @@ export const getTeachersRoute: FastifyPluginAsyncZod = async (server) => {
         const result = await db
           .select()
           .from(teachers)
-          .orderBy(asc(teachers.name));
+          .where(eq(teachers.isActive, true))
+          .orderBy(asc(teachers.name))
 
         return reply.status(200).send(
           result.map((item) => ({
