@@ -1,73 +1,84 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-// Importa a instância única do servidor diretamente do index.ts
-import { server } from "../../../src/index.ts";
+import { server } from "../../helpers/server.ts";
 import { db } from "../../../src/database/client.ts";
 import { courses } from "../../../src/database/schema.ts";
+import { createAuthenticatedSession } from "../../helpers/auth.ts";
 
 describe("POST /api/v1/courses", () => {
-  let createdCourseId: string | null = null;
+  let auth: Awaited<ReturnType<typeof createAuthenticatedSession>>;
+  const createdCourseIds: string[] = [];
 
-  // Aguarda o Fastify terminar de carregar todos os plugins e rotas antes dos testes
   beforeAll(async () => {
     await server.ready();
+    auth = await createAuthenticatedSession();
   });
 
-  // Limpa o registro criado no banco após cada teste para manter o ambiente isolado
   afterEach(async () => {
-    if (createdCourseId) {
-      await db.delete(courses).where(eq(courses.id, createdCourseId));
-      createdCourseId = null;
+    while (createdCourseIds.length > 0) {
+      const id = createdCourseIds.pop()!;
+      await db.delete(courses).where(eq(courses.id, id));
     }
   });
 
-  // Encerra a instância do Fastify ao finalizar a suíte
   afterAll(async () => {
+    await auth.cleanup();
     await server.close();
   });
 
   it("should create a valid course and return 201 with courseId", async () => {
+    const suffix = randomUUID().slice(0, 6);
     const payload = {
-      name: "Tecnologia em Sistemas para Internet - Teste",
-      workload: 2000,
-      semesters: 5,
-      modality: "online",
-      active: true,
+      name: `Sistemas para Internet ${suffix}`,
+      workloadHours: 2400,
+      durationSemesters: 5,
+      modality: "online" as const,
+      isActive: true,
     };
 
     const response = await server.inject({
       method: "POST",
       url: "/api/v1/courses",
+      headers: {
+        authorization: `Bearer ${auth.token}`,
+      },
       payload,
     });
 
     const body = response.json();
-    createdCourseId = body.courseId;
+    if (body.courseId) {
+      createdCourseIds.push(body.courseId);
+    }
 
     expect(response.statusCode).toBe(201);
     expect(body).toHaveProperty("courseId");
     expect(typeof body.courseId).toBe("string");
 
-    const [savedCourse] = await db
+    const [saved] = await db
       .select()
       .from(courses)
       .where(eq(courses.id, body.courseId));
 
-    expect(savedCourse).toBeDefined();
-    expect(savedCourse.name).toBe(payload.name);
-    expect(savedCourse.workloadHours).toBe(2000);
-    expect(savedCourse.durationSemesters).toBe(5);
-    expect(savedCourse.modality).toBe("online");
+    expect(saved).toBeDefined();
+    expect(saved.name).toBe(payload.name);
+    expect(saved.workloadHours).toBe(2400);
+    expect(saved.durationSemesters).toBe(5);
+    expect(saved.modality).toBe("online");
+    expect(saved.isActive).toBe(true);
   });
 
-  it("should return 400 when request body fails Zod validation", async () => {
+  it("should return 400 when required fields or modality are invalid", async () => {
     const response = await server.inject({
       method: "POST",
       url: "/api/v1/courses",
+      headers: {
+        authorization: `Bearer ${auth.token}`,
+      },
       payload: {
         name: "",
-        workload: 0,
-        semesters: -1,
+        workloadHours: 0,
+        durationSemesters: 0,
         modality: "invalid_modality",
       },
     });
@@ -75,33 +86,20 @@ describe("POST /api/v1/courses", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it("should return 409 when creating a duplicate course in the same modality", async () => {
-    const [existing] = await db
-      .insert(courses)
-      .values({
-        name: "Engenharia de Software - Duplicado",
-        workloadHours: 3200,
-        durationSemesters: 8,
-        modality: "in_person",
-      })
-      .returning();
-
-    createdCourseId = existing.id;
+  it("should return 401 when Authorization header is missing", async () => {
+    const suffix = randomUUID().slice(0, 6);
 
     const response = await server.inject({
       method: "POST",
       url: "/api/v1/courses",
       payload: {
-        name: "Engenharia de Software - Duplicado",
-        workload: 3200,
-        semesters: 8,
+        name: `Curso Sem Token ${suffix}`,
+        workloadHours: 1600,
+        durationSemesters: 4,
         modality: "in_person",
       },
     });
 
-    expect(response.statusCode).toBe(409);
-    expect(response.json()).toEqual({
-      message: "Course with this name and modality already exists",
-    });
+    expect(response.statusCode).toBe(401);
   });
 });

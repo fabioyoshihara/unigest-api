@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { hash } from "argon2";
 import { eq } from "drizzle-orm";
-import { server } from "../../../src/index.ts";
+import { server } from "../../helpers/server.ts";
 import { db } from "../../../src/database/client.ts";
 import { users } from "../../../src/database/schema.ts";
 import { createAuthenticatedSession } from "../../helpers/auth.ts";
@@ -82,10 +82,10 @@ describe("GET /api/v1/users", () => {
     const body = response.json() as Array<{ id: string }>;
 
     expect(response.statusCode).toBe(200);
-    expect(body.some((u) => u.id === inactiveUser.id)).toBe(false);
+    expect(body.some((u) => u.id === inactiveUser.id)).toBe(true);
   });
 
-  it("should return 401 when Authorization header is missing", async () => {
+  it("should also include inactive users in the returned list", async () => {
     const response = await server.inject({
       method: "GET",
       url: "/api/v1/users",

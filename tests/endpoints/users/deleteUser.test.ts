@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { hash } from "argon2";
 import { eq } from "drizzle-orm";
-import { server } from "../../../src/index.ts";
+import { server } from "../../helpers/server.ts";
 import { db } from "../../../src/database/client.ts";
 import { users } from "../../../src/database/schema.ts";
 import { createAuthenticatedSession } from "../../helpers/auth.ts";

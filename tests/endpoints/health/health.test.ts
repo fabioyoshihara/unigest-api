@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { server } from "../../../src/index.ts";
+import { server } from "../../helpers/server.ts";
 import { db } from "../../../src/database/client.ts";
 
 describe("GET / — Health Check", () => {

@@ -4,13 +4,8 @@ import { z } from "zod";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 import { db } from "../../database/client.ts";
 import { students } from "../../database/schema.ts";
-
-function isUniqueViolation(err: unknown): boolean {
-  if (typeof err !== "object" || err === null) return false;
-  const errorObj = err as Record<string, unknown>;
-  const cause = errorObj.cause as Record<string, unknown> | undefined;
-  return errorObj.code === "23505" || cause?.code === "23505";
-}
+import { genderEnum, studentStatusEnum } from "../../database/schema/enums.ts";
+import { randomUUID } from "node:crypto";
 
 export const createStudentRoute: FastifyPluginAsyncZod = async (server) => {
   server.post(
@@ -19,20 +14,28 @@ export const createStudentRoute: FastifyPluginAsyncZod = async (server) => {
       preHandler: [checkRequestJWT],
       schema: {
         tags: ["Students"],
-        summary: "Register a new student",
+        summary: "Create Student",
         description: "Create an enrollment to student",
         body: z.object({
-          nome: z.string().min(1, "Name is required"),
-          cpf: z.string().min(11, "CPF is required"),
-          email: z.email(),
-          telefone: z.string().min(1, "Phone is required"),
-          endereco: z.string().min(1, "Address is required"),
-          ra: z.string().min(1, "Registration number is required"),
-          dataIngresso: z.coerce.date(),
+          name: z.string().trim().min(1, "Name is required").max(200),
+          cpf: z.string().min(1, "CPF is required").max(14),
+          email: z.email().min(1, "E-mail is required").trim().toLowerCase(),
+          phone: z.string().max(20),
+          secondaryPhone: z.string().optional(),
+          address: z.string().max(255),
+          admissionDate: z.coerce.date(),
+          birthDate: z.iso.date(),
+          gender: z.enum(genderEnum.enumValues).optional(),
+          nationality: z.string().max(80).optional(),
+          naturalness: z.string().max(120).optional(),
+          photoUrl: z.string().max(500).optional(),
+          emergencyContact: z.string().max(120),
+          status: z.enum(studentStatusEnum.enumValues).default("active"),
         }),
         response: {
           201: z.object({
-            studentId: z.string(),
+            studentId: z.string().uuid(),
+            registrationNumber: z.string(),
           }),
           401: z.object({
             message: z.string(),
@@ -40,13 +43,15 @@ export const createStudentRoute: FastifyPluginAsyncZod = async (server) => {
           409: z.object({
             message: z.string(),
           }),
+          500: z.object({
+            message: z.string(),
+          }),
         },
       },
     },
     async (request, reply) => {
       const user = getUserFromRequest(request);
-      const { nome, cpf, email, telefone, endereco, ra, dataIngresso } =
-        request.body;
+      const { cpf, email } = request.body;
 
       if (!user) {
         return reply
@@ -55,28 +60,59 @@ export const createStudentRoute: FastifyPluginAsyncZod = async (server) => {
       }
 
       try {
-        const result = await db
-          .insert(students)
-          .values({
-            name: nome,
-            cpf,
-            email,
-            phone: telefone,
-            address: endereco,
-            registrationNumber: ra,
-            admissionDate: dataIngresso,
-          })
-          .returning();
+        const registrationNumber = `ALU-${randomUUID().slice(0, 8).toUpperCase()}`;
+        const data = {
+          ...request.body,
+          cpf: cpf.replace(/\D/g, ""),
+          email: email.toLowerCase(),
+          registrationNumber,
+        };
 
-        return reply.status(201).send({ studentId: result[0].id });
+        const [createStudent] = await db
+          .insert(students)
+          .values(data)
+          .returning({
+            id: students.id,
+            registrationNumber: students.registrationNumber,
+          });
+
+        return reply.status(201).send({
+          studentId: createStudent.id,
+          registrationNumber: createStudent.registrationNumber,
+        });
       } catch (err) {
-        if (isUniqueViolation(err)) {
+        const dbError = err as {
+          code?: string;
+          constraint?: string;
+        };
+
+        if (dbError.code === "23505") {
+          if (dbError.constraint === "students_cpf_uq") {
+            return reply.status(409).send({
+              message: "A student with this CPF already exists",
+            });
+          }
+
+          if (dbError.constraint === "students_email_uq") {
+            return reply.status(409).send({
+              message: "A student with this email already exists",
+            });
+          }
+
+          if (dbError.constraint === "students_registration_number_uq") {
+            return reply.status(409).send({
+              message: "Registration number conflict. Try again",
+            });
+          }
           return reply.status(409).send({
-            message: "Student with this CPF, email or RA already exists",
+            message: "A unique constraint was violated",
           });
         }
-        throw err;
+        request.log.error({ error: err }, "Failed to create student");
+        return reply.status(500).send({
+          message: "Internal server error",
+        });
       }
-    }
+    },
   );
-};
+}

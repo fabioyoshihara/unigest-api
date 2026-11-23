@@ -4,7 +4,6 @@ import { fastify } from "fastify";
 import cors from "@fastify/cors";
 
 import {
-  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
@@ -52,14 +51,9 @@ import { updatePartialUserRoute } from "./routes/users/updatePartialUserRoute.ts
 
 const port = Number(process.env.PORT) || 3333;
 
-// Detecta se o arquivo foi importado pelo Vitest durante a execução dos testes
-const isTest = process.env.NODE_ENV === "test" || Boolean(process.env.VITEST);
-
-// Só ativa logs coloridos e Swagger em desenvolvimento real (nunca durante os testes)
 const isDev =
-  !isTest &&
-  (process.env.NODE_ENV === "development" ||
-    process.env.NODE_ENVIRONMENT === "development");
+  process.env.NODE_ENV === "development" ||
+  process.env.NODE_ENVIRONMENT === "development";
 
 const server = fastify({
   logger: isDev
@@ -74,7 +68,7 @@ const server = fastify({
         },
       },
     }
-    : !isTest,
+    : true,
 });
 
 /* CORS */
@@ -90,19 +84,9 @@ server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
 
 server.register(healthRoute);
-
 /* SWAGGER */
 if (isDev) {
-  await server.register(fastifySwagger, {
-    openapi: {
-      info: {
-        title: "Unigest API",
-        description: "API to university management",
-        version: "1.0.0",
-      },
-    },
-    transform: jsonSchemaTransform,
-  });
+  await server.register(fastifySwagger, swaggerConfig);
 
   server.get("/openapi.json", async () => {
     return server.swagger();
@@ -164,22 +148,19 @@ server.register(updateTeacherRoute);
 server.register(updatePartialTeacherRoute);
 
 /* SERVER */
-// Só abre a porta de rede se NÃO estiver rodando dentro do Vitest
-if (!isTest) {
-  server.listen(
-    {
-      port,
-      host: "0.0.0.0",
-    },
-    (err, address) => {
-      if (err) {
-        server.log.error(err);
-        process.exit(1);
-      }
-
-      console.log(`HTTP server is running, ${address}`);
+server.listen(
+  {
+    port,
+    host: "0.0.0.0",
+  },
+  (err, address) => {
+    if (err) {
+      server.log.error(err);
+      process.exit(1);
     }
-  );
-}
+
+    console.log(`HTTP server is running, ${address}`);
+  }
+);
 
 export { server };

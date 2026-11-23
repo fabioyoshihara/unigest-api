@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../../database/client.ts";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 
-export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => {
+export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => { 
   server.delete(
     "/api/v1/courses/:id",
     {
@@ -16,7 +16,7 @@ export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => {
         summary: "Delete Course",
         description: "Performs a logical deletion of a course.",
         params: z.object({
-          id: z.string().uuid(),
+          courseId: z.string().uuid(),
         }),
         response: {
           200: z.object({
@@ -44,7 +44,7 @@ export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => {
         });
       }
 
-      const { id } = request.params;
+      const { courseId } = request.params;
 
       try {
         const [deletedCourse] = await db
@@ -53,7 +53,7 @@ export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => {
             isActive: false,
             updatedAt: new Date(),
           })
-          .where(eq(courses.id, id))
+          .where(eq(courses.id, courseId))
           .returning({
             id: courses.id,
           });
@@ -70,7 +70,7 @@ export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => {
         });
       } catch (error) {
         server.log.error(
-          { error, courseId: id },
+          { error, courseId },
           "Error while deactivating course.",
         );
 
@@ -80,4 +80,4 @@ export const deleteCourseRoute: FastifyPluginAsyncZod = async (server) => {
       }
     },
   );
-};
+}

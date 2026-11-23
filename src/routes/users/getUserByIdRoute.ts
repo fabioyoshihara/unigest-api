@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
-export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
   server.get(
     "/api/v1/users/:id",
     {
@@ -70,7 +69,6 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
           createdAt: foundUser.createdAt.toISOString(),
           updatedAt: foundUser.updatedAt.toISOString(),
         });
-        });
       } catch (err) {
         request.log.error(err);
 
@@ -78,6 +76,6 @@ export const getUserByIdRoute: FastifyPluginAsyncZod = async (server) => {
           message: "Unable to retrieve user. Internal server error.",
         });
       }
-    }
+    },
   );
 };
