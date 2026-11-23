@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { db } from "../../database/client.ts";
 import { users } from "../../database/schema.ts";
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
@@ -59,7 +59,8 @@ export const getUsersRoute: FastifyPluginAsyncZod = async (server) => {
             updatedAt: users.updatedAt,
           })
           .from(users)
-          .orderBy(asc(users.firstName));
+          .orderBy(asc(users.firstName))
+          .where(eq(users.isActive, true))
 
         const formattedUsers = result.map((user) => ({
           ...user,

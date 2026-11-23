@@ -4,6 +4,7 @@ import z from "zod";
 import { courses } from "../../database/schema.ts";
 import { db } from "../../database/client.ts";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
+import { eq } from "drizzle-orm";
 
 export const getCoursesRoute: FastifyPluginAsyncZod = async (server) => {
   server.get("/api/v1/courses", {
@@ -51,6 +52,7 @@ export const getCoursesRoute: FastifyPluginAsyncZod = async (server) => {
       const result = await db
         .select()
         .from(courses)
+        .where(eq(courses.isActive, true))
       
       if(result.length === 0) { 
         return reply.status(404).send({ message: "No courses registered" })
