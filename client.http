@@ -1,39 +1,585 @@
-@baseUrl = https://p-i-sistemas-dinamicos-server.onrender.com/api/v1
+@baseUrl = http://localhost:3000
 
-# HEALTH ROUTE
-GET https://p-i-sistemas-dinamicos-server.onrender.com/
+# Credenciais de um usuário existente no banco
+@loginEmail = admin.sistema@unigest.edu.br
+@loginPassword = Admin@2026
 
-###
+# Valores únicos para os exemplos
+@uniq = 001
+@cpf11 = 12345678901
+@cnpj14 = 12345678000190
 
-# 1. AUTHENTICATE ROUTE
+# Capturados automaticamente das respostas (rode o request nomeado antes)
+@token = {{login.response.body.$.token}}
+@userId = {{createUser.response.body.$.id}}
+@otherUserId = {{createOtherUser.response.body.$.id}}
+@courseId = {{createCourse.response.body.$.courseId}}
+@studentId = {{createStudent.response.body.$.studentId}}
+@registrationNumber = {{createStudent.response.body.$.registrationNumber}}
+@supplierId = {{createSupplier.response.body.$.supplierId}}
+@teacherId = {{createTeacher.response.body.$.id}}
+@classId = {{createClass.response.body.$.id}}
+
+
+
+# =====================================================================
+#  AUTH
+# =====================================================================
+
+### Login (captura o token automaticamente)
 # @name login
-POST {{baseUrl}}/login
+POST {{baseUrl}}/api/v1/login
 Content-Type: application/json
 
-{ 
-  "email": "admin.sistema@unigest.edu.br",
-  "password": "Admin@2026"
+{
+  "email": "{{loginEmail}}",
+  "password": "{{loginPassword}}"
 }
 
-###
-# Captura a propriedade "token" do JSON de resposta da requisição chamada "login"
-@authToken = {{login.response.body.token}}
-
-# USERS ROUTE
-###
-
-# Return all users from database
-GET {{baseUrl}}/users
-Authorization: Bearer {{authToken}}
-
-###
-
-POST {{baseUrl}}/users
+### Login - senha inválida (esperado 400)
+POST {{baseUrl}}/api/v1/login
 Content-Type: application/json
-Authorization: Bearer {{authToken}}
 
-{ 
-  "firstName": "John",
-  "lastName": "Doe",
-  "personalEmail": "johndoe@example.com"
+{
+  "email": "{{loginEmail}}",
+  "password": "senha-errada"
 }
+
+
+# =====================================================================
+#  HEALTH
+# =====================================================================
+
+### Health check
+GET {{baseUrl}}/
+
+
+# =====================================================================
+#  USERS
+# =====================================================================
+
+### Create user (captura userId)
+# @name createUser
+POST {{baseUrl}}/api/v1/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Carlos",
+  "lastName": "Mendes",
+  "personalEmail": "carlos.{{uniq}}@gmail.com"
+}
+
+### Create user - e-mail pessoal duplicado (esperado 409)
+POST {{baseUrl}}/api/v1/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Carlos",
+  "lastName": "Mendes",
+  "personalEmail": "carlos.{{uniq}}@gmail.com"
+}
+
+### Create user B (captura otherUserId)
+# @name createOtherUser
+POST {{baseUrl}}/api/v1/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Beatriz",
+  "lastName": "Lima",
+  "personalEmail": "beatriz.{{uniq}}@gmail.com"
+}
+
+### Get users
+GET {{baseUrl}}/api/v1/users
+Authorization: Bearer {{token}}
+
+### Get user by ID
+GET {{baseUrl}}/api/v1/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Put user
+PUT {{baseUrl}}/api/v1/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Carlos",
+  "lastName": "Mendes Filho",
+  "personalEmail": "carlos.filho.{{uniq}}@gmail.com",
+  "role": "coordination"
+}
+
+### Patch user
+PATCH {{baseUrl}}/api/v1/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "finance"
+}
+
+### Patch user - e-mail pessoal de outro usuário (esperado 409)
+PATCH {{baseUrl}}/api/v1/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "personalEmail": "beatriz.{{uniq}}@gmail.com"
+}
+
+### Delete user
+DELETE {{baseUrl}}/api/v1/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Delete user B
+DELETE {{baseUrl}}/api/v1/users/{{otherUserId}}
+Authorization: Bearer {{token}}
+
+
+# =====================================================================
+#  COURSES
+# =====================================================================
+
+### Create course (captura courseId)
+# @name createCourse
+POST {{baseUrl}}/api/v1/courses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ciência da Computação",
+  "workloadHours": 3200,
+  "durationSemesters": 8,
+  "modality": "hybrid"
+}
+
+### Create course - modality inválida (esperado 400)
+POST {{baseUrl}}/api/v1/courses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Curso X",
+  "workloadHours": 3200,
+  "durationSemesters": 8,
+  "modality": "ead"
+}
+
+### Get courses
+GET {{baseUrl}}/api/v1/courses
+Authorization: Bearer {{token}}
+
+### Get course by ID
+GET {{baseUrl}}/api/v1/courses/{{courseId}}
+Authorization: Bearer {{token}}
+
+### Put course
+PUT {{baseUrl}}/api/v1/courses/{{courseId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ciência da Computação (2026)",
+  "workloadHours": 3000,
+  "durationSemesters": 8,
+  "modality": "in_person"
+}
+
+### Patch course
+PATCH {{baseUrl}}/api/v1/courses/{{courseId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "modality": "online"
+}
+
+### Delete course
+DELETE {{baseUrl}}/api/v1/courses/{{courseId}}
+Authorization: Bearer {{token}}
+
+
+# =====================================================================
+#  STUDENTS
+# =====================================================================
+
+### Create student (captura studentId e registrationNumber)
+# @name createStudent
+POST {{baseUrl}}/api/v1/students
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "João Pereira",
+  "cpf": "{{cpf11}}",
+  "email": "joao.{{uniq}}@aluno.edu.br",
+  "phone": "(11) 95555-0000",
+  "secondaryPhone": "(11) 3333-0000",
+  "address": "Rua B, 200 - São Paulo/SP",
+  "admissionDate": "2026-02-01",
+  "birthDate": "2003-05-14",
+  "gender": "male",
+  "nationality": "Brasileira",
+  "naturalness": "São Paulo/SP",
+  "emergencyContact": "Maria Pereira - (11) 94444-0000"
+}
+
+### Create student - CPF duplicado (esperado 409)
+POST {{baseUrl}}/api/v1/students
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "João Pereira",
+  "cpf": "{{cpf11}}",
+  "email": "joao.{{uniq}}@aluno.edu.br",
+  "phone": "(11) 95555-0000",
+  "secondaryPhone": "(11) 3333-0000",
+  "address": "Rua B, 200 - São Paulo/SP",
+  "admissionDate": "2026-02-01",
+  "birthDate": "2003-05-14",
+  "gender": "male",
+  "nationality": "Brasileira",
+  "naturalness": "São Paulo/SP",
+  "emergencyContact": "Maria Pereira - (11) 94444-0000"
+}
+
+### Create student - sem emergencyContact (esperado 400)
+POST {{baseUrl}}/api/v1/students
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Sem Contato",
+  "cpf": "99999999999",
+  "email": "sem.contato@aluno.edu.br",
+  "phone": "1",
+  "address": "Rua X",
+  "admissionDate": "2026-02-01",
+  "birthDate": "2003-05-14"
+}
+
+### Get students
+GET {{baseUrl}}/api/v1/students
+Authorization: Bearer {{token}}
+
+### Get student by ID
+GET {{baseUrl}}/api/v1/students/{{studentId}}
+Authorization: Bearer {{token}}
+
+### Put student (registrationNumber vem do create)
+PUT {{baseUrl}}/api/v1/students/{{studentId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "João Pereira da Silva",
+  "cpf": "{{cpf11}}",
+  "email": "joao.{{uniq}}@aluno.edu.br",
+  "phone": "(11) 95555-0000",
+  "secondaryPhone": "(11) 3333-0000",
+  "address": "Rua C, 300 - São Paulo/SP",
+  "registrationNumber": "{{registrationNumber}}",
+  "admissionDate": "2026-02-01T00:00:00.000Z",
+  "birthDate": "2003-05-14",
+  "gender": "male",
+  "nationality": "Brasileira",
+  "naturalness": "São Paulo/SP",
+  "emergencyContact": "Maria Pereira - (11) 94444-0000",
+  "status": "active"
+}
+
+### Patch student
+PATCH {{baseUrl}}/api/v1/students/{{studentId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "on_leave",
+  "secondaryPhone": null
+}
+
+### Delete student
+DELETE {{baseUrl}}/api/v1/students/{{studentId}}
+Authorization: Bearer {{token}}
+
+
+# =====================================================================
+#  SUPPLIERS
+# =====================================================================
+
+### Create supplier (captura supplierId)
+# @name createSupplier
+POST {{baseUrl}}/api/v1/suppliers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "legalName": "ACME Materiais de Escritório LTDA",
+  "cnpj": "{{cnpj14}}",
+  "stateRegistration": "123.456.789.000",
+  "email": "contato.{{uniq}}@acme.com.br",
+  "phone": "(11) 3000-0000",
+  "address": "Av. Industrial, 500 - Guarulhos/SP",
+  "category": "Material de escritório"
+}
+
+### Create supplier - CNPJ curto (esperado 400)
+POST {{baseUrl}}/api/v1/suppliers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "legalName": "ACME Materiais de Escritório LTDA",
+  "cnpj": "123",
+  "stateRegistration": "123.456.789.000",
+  "email": "contato.{{uniq}}@acme.com.br",
+  "phone": "(11) 3000-0000",
+  "address": "Av. Industrial, 500 - Guarulhos/SP",
+  "category": "Material de escritório"
+}
+
+### Get suppliers
+GET {{baseUrl}}/api/v1/suppliers
+Authorization: Bearer {{token}}
+
+### Get supplier by ID
+GET {{baseUrl}}/api/v1/suppliers/{{supplierId}}
+Authorization: Bearer {{token}}
+
+### Put supplier
+PUT {{baseUrl}}/api/v1/suppliers/{{supplierId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "legalName": "ACME LTDA",
+  "cnpj": "{{cnpj14}}",
+  "stateRegistration": "123.456.789.000",
+  "email": "contato.{{uniq}}@acme.com.br",
+  "phone": "(11) 3000-0000",
+  "address": "Av. Brasil, 1000 - São Paulo/SP",
+  "category": "Material de escritório"
+}
+
+### Patch supplier
+PATCH {{baseUrl}}/api/v1/suppliers/{{supplierId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "category": "Tecnologia"
+}
+
+### Delete supplier
+DELETE {{baseUrl}}/api/v1/suppliers/{{supplierId}}
+Authorization: Bearer {{token}}
+
+
+# =====================================================================
+#  TEACHERS
+# =====================================================================
+
+### Create teacher (captura teacherId)
+# @name createTeacher
+POST {{baseUrl}}/api/v1/teachers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ana Souza",
+  "cpf": "{{cpf11}}",
+  "rg": "12.345.678-9",
+  "email": "ana.{{uniq}}@universidade.edu.br",
+  "phone": "(11) 99999-0000",
+  "address": "Rua das Flores, 100 - São Paulo/SP",
+  "employeeNumber": "T{{uniq}}",
+  "degreeLevel": "master"
+}
+
+### Create teacher - duplicado (esperado 409)
+POST {{baseUrl}}/api/v1/teachers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ana Souza",
+  "cpf": "{{cpf11}}",
+  "rg": "12.345.678-9",
+  "email": "ana.{{uniq}}@universidade.edu.br",
+  "phone": "(11) 99999-0000",
+  "address": "Rua das Flores, 100 - São Paulo/SP",
+  "employeeNumber": "T{{uniq}}",
+  "degreeLevel": "master"
+}
+
+### Create teacher - inválido (esperado 400)
+POST {{baseUrl}}/api/v1/teachers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Fulano",
+  "cpf": "12345678902",
+  "email": "email-invalido",
+  "phone": "1",
+  "address": "Rua X",
+  "employeeNumber": "T0002",
+  "degreeLevel": "phd"
+}
+
+### Get teachers
+GET {{baseUrl}}/api/v1/teachers
+Authorization: Bearer {{token}}
+
+### Get teacher by ID
+GET {{baseUrl}}/api/v1/teachers/{{teacherId}}
+Authorization: Bearer {{token}}
+
+### Put teacher
+PUT {{baseUrl}}/api/v1/teachers/{{teacherId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ana Souza Lima",
+  "cpf": "{{cpf11}}",
+  "rg": "12.345.678-9",
+  "email": "ana.{{uniq}}@universidade.edu.br",
+  "phone": "(11) 98888-0000",
+  "address": "Rua das Flores, 100 - São Paulo/SP",
+  "employeeNumber": "T{{uniq}}",
+  "degreeLevel": "doctorate",
+  "isActive": true
+}
+
+### Patch teacher
+PATCH {{baseUrl}}/api/v1/teachers/{{teacherId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "phone": "(11) 97777-0000"
+}
+
+### Patch teacher - body vazio (esperado 400)
+PATCH {{baseUrl}}/api/v1/teachers/{{teacherId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### Delete teacher
+DELETE {{baseUrl}}/api/v1/teachers/{{teacherId}}
+Authorization: Bearer {{token}}
+
+### Patch teacher - reativar
+PATCH {{baseUrl}}/api/v1/teachers/{{teacherId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isActive": true
+}
+
+
+# =====================================================================
+#  CLASSES
+# =====================================================================
+
+### Create class (captura classId)
+# @name createClass
+POST {{baseUrl}}/api/v1/classes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "courseId": "{{courseId}}",
+  "teacherId": "{{teacherId}}",
+  "description": "Turma A - Noturno",
+  "semester": "1",
+  "year": 2026,
+  "scheduleTime": "19:00",
+  "room": "B12"
+}
+
+### Create class - sem professor
+POST {{baseUrl}}/api/v1/classes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "courseId": "{{courseId}}",
+  "description": "Turma B - Matutino",
+  "semester": "2",
+  "year": 2026,
+  "scheduleTime": "08:00:00",
+  "room": "A03",
+  "status": "planned"
+}
+
+### Create class - courseId inexistente (esperado 400, FK)
+POST {{baseUrl}}/api/v1/classes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "courseId": "00000000-0000-4000-8000-000000000000",
+  "teacherId": null,
+  "description": "Turma Fantasma",
+  "semester": "1",
+  "year": 2026,
+  "scheduleTime": "19:00",
+  "room": "B12"
+}
+
+### Get classes
+GET {{baseUrl}}/api/v1/classes
+Authorization: Bearer {{token}}
+
+### Get class by ID
+GET {{baseUrl}}/api/v1/classes/{{classId}}
+Authorization: Bearer {{token}}
+
+### Put class (teacherId omitido vira null)
+PUT {{baseUrl}}/api/v1/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "courseId": "{{courseId}}",
+  "description": "Turma A - Noturno (atualizada)",
+  "semester": "1",
+  "year": 2026,
+  "scheduleTime": "20:30",
+  "room": "C01",
+  "status": "in_progress"
+}
+
+### Patch class
+PATCH {{baseUrl}}/api/v1/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "room": "D07",
+  "status": "completed"
+}
+
+### Patch class - remover professor
+PATCH {{baseUrl}}/api/v1/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "teacherId": null
+}
+
+### Delete class
+DELETE {{baseUrl}}/api/v1/classes/{{classId}}
+Authorization: Bearer {{token}}
+

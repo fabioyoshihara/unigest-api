@@ -3,6 +3,7 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { courses } from "../../database/schema.ts";
 import { db } from "../../database/client.ts";
 import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
+import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 
 function isUniqueViolation(err: unknown): boolean {
   if (typeof err !== "object" || err === null) return false;
@@ -40,6 +41,12 @@ export const createCourseRoute: FastifyPluginAsyncZod = async (server) => {
       },
     },
     async (request, reply) => {
+      const user = getUserFromRequest(request);
+
+      if(!user) { 
+        return reply.status(401).send({ message: "You aren't authorized" })
+      }
+
       try {
         const { name, workload, semesters, modality, active } = request.body;
 
