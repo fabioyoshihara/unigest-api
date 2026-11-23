@@ -33,6 +33,16 @@ export const swaggerConfig = {
         description:
           "Manages academic classes, including class creation, scheduling, student assignments, instructors, and class availability.",
       },
+      {
+        name: "Teachers",
+        description:
+          "Manages teacher records, including personal information, professional registration, employment details, academic assignments, and active status.",
+      },
+      {
+        name: "Suppliers",
+        description:
+          "Manages supplier records, including legal information, tax identification, contact details, categories, addresses, and active status.",
+      },
     ],
   },
   transform: jsonSchemaTransform,
