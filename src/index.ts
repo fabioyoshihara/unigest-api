@@ -40,6 +40,14 @@ import { createTeacherRoute } from "./routes/teachers/createTeacherRoute.ts";
 import { updateTeacherRoute } from "./routes/teachers/updateTeacherRoute.ts";
 import { updatePartialTeacherRoute } from "./routes/teachers/updatePartialTeacherRoute.ts";
 import { deleteTeacherRoute } from "./routes/teachers/deleteTeacherRoute.ts";
+import { updateCourseRoute } from "./routes/courses/updateCourseRoute.ts";
+import { updatePartialCourseRoute } from "./routes/courses/updatePartialCourseRoute.ts";
+import { updatePartialSupplierRoute } from "./routes/suppliers/updatePartialSupplierRoute.ts";
+import { updateSupplierRoute } from "./routes/suppliers/updateSupplierRoute.ts";
+import { updateStudentRoute } from "./routes/students/updateStudentRoute.ts";
+import { updatePartialStudentRoute } from "./routes/students/updatePartialStudentRoute.ts";
+import { updateUserRoute } from "./routes/users/updateUserRoute.ts";
+import { updatePartialUserRoute } from "./routes/users/updatePartialUserRoute.ts";
 
 const port = Number(process.env.PORT) || 3333;
 
@@ -101,21 +109,29 @@ server.register(getUsersRoute);
 server.register(getUserByIdRoute);
 server.register(createUserRoute);
 server.register(deleteUserRoute);
+server.register(updateUserRoute);
+server.register(updatePartialUserRoute);
 
 server.register(getStudentsRoute);
 server.register(getStudentByIdRoute);
 server.register(createStudentRoute);
 server.register(deleteStudentRoute);
+server.register(updateStudentRoute);
+server.register(updatePartialStudentRoute);
 
 server.register(getCoursesRoute);
 server.register(getCourseByIdRoute);
 server.register(createCourseRoute);
 server.register(deleteCourseRoute);
+server.register(updateCourseRoute);
+server.register(updatePartialCourseRoute);
 
 server.register(getSupplierRoute);
 server.register(getSupplierByIdRoute);
 server.register(createSupplierRoute);
 server.register(deleteSupplierRoute);
+server.register(updateSupplierRoute);
+server.register(updatePartialSupplierRoute);
 
 server.register(getClassesRoute);
 server.register(getClassByIdRoute);
