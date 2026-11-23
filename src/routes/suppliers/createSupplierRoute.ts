@@ -3,6 +3,7 @@ import { checkRequestJWT } from "../hooks/check-request-jwt.ts";
 import z from "zod";
 import { suppliers } from "../../database/schema.ts";
 import { db } from "../../database/client.ts";
+import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
 
 export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
   server.post(
@@ -27,6 +28,7 @@ export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
             message: z.string(),
             supplierId: z.string().uuid(),
           }),
+          401: z.object({ message: z.string() }),
           500: z.object({
             message: z.string(),
           }),
@@ -34,7 +36,12 @@ export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
       },
     },
     async (request, reply) => {
-      const data = request.body
+      const data = request.body;
+      const user = getUserFromRequest(request);
+
+      if(!user) { 
+        return reply.status(401).send({ message: "You aren't authorized." });
+      }
 
       try {
         const [supplier] = await db
