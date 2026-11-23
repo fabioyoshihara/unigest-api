@@ -4,6 +4,7 @@ import z from "zod";
 import { suppliers } from "../../database/schema.ts";
 import { db } from "../../database/client.ts";
 import { getUserFromRequest } from "../../utils/getUserFromRequest.ts";
+import { eq } from "drizzle-orm";
 
 export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
   server.post(
@@ -29,6 +30,7 @@ export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
             supplierId: z.string().uuid(),
           }),
           401: z.object({ message: z.string() }),
+          409: z.object({ message: z.string() }),
           500: z.object({
             message: z.string(),
           }),
@@ -44,6 +46,16 @@ export const createSupplierRoute: FastifyPluginAsyncZod = async (server) => {
       }
 
       try {
+        const supplierExist = await db
+          .select()
+          .from(suppliers)
+          .where(eq(suppliers.cnpj, data.cnpj))
+          .limit(1);
+
+        if(supplierExist) { 
+          return reply.status(409).send({ message: "Supplier already registered!" });
+        }
+
         const [supplier] = await db
           .insert(suppliers)
           .values(data)
