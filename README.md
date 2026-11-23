@@ -4,6 +4,17 @@ API backend do projeto integrador **Sistema de Gestão de Universidade** do SENA
 
 A aplicação centraliza informações acadêmicas e administrativas de usuários, estudantes, professores, cursos, turmas, matrículas e fornecedores.
 
+## Integrantes
+
+
+| Nome                        | Responsabilidade                                |
+|------                       |------------------                               |
+| Fabio Yoshihara             | Responsável pela Bateria de Testes              |
+| João Gabriel                | Integração e Desenvolvimento Front-end          |
+| Júlio César Vilela Caria    | Desenvolvimento Back-End e Documentação da API  |
+| Marcos Nazario              | Documentação                                    |
+| Matheus Ferrari             | Documentação                                    |
+
 ## Stack tecnológica
 
 | Tecnologia | Uso |
@@ -277,3 +288,17 @@ docker compose down -v
 ## Testes manuais
 
 O arquivo [`client.http`](./client.http) contém exemplos de login e operações da API. Ele pode ser executado por extensões compatíveis no VS Code, como a REST Client.
+
+---
+
+<div align="center">
+
+**Unigest API**  
+Sistema de Gestão de Universidade
+
+Projeto Integrador - SENAC - Tecnologia em Sistemas para a Internet - 4º Semestre - Grupo 01.
+
+Desenvolvido por [Júlio Caria](https://github.com/julio-caria)
+</div>
+
+----
